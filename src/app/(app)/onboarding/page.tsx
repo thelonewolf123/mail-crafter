@@ -1,122 +1,169 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import { Sparkles, UserCheck, ArrowRight, Check } from "lucide-react";
+import { Sparkles, ArrowRight, Check } from "lucide-react";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
+import { useForm } from "react-hook-form";
 
 function OnboardingPage() {
   const [step, setStep] = useState(0);
-  const [form, setForm] = useState({
-    name: "",
-    role: "",
-    company: "",
-    goal: "",
-    emailsPerWeek: "",
-  });
   const [transitioning, setTransitioning] = useState(false);
+
+  const {
+    register,
+    setValue,
+    watch,
+    formState: { errors },
+  } = useForm({
+    defaultValues: {
+      name: "",
+      role: "",
+      goal: "",
+      emailsPerWeek: "",
+    },
+    mode: "onChange",
+  });
+
+  const form = watch();
 
   const steps = [
     {
-      label: "What's your name?",
+      label: "Tell us about yourself",
       content: (
-        <Input
-          type="text"
-          placeholder="Enter your name"
-          value={form.name}
-          onChange={(e) => setForm({ ...form, name: e.target.value })}
-          className="text-base"
-        />
-      ),
-      isValid: !!form.name.trim(),
-    },
-    {
-      label: "What's your role?",
-      content: (
-        <div className="flex flex-wrap gap-2 justify-center">
-          {["Sales", "Marketing", "Founder", "Other"].map((role) => (
-            <Button
-              key={role}
-              type="button"
-              variant={form.role === role ? "default" : "outline"}
-              className={`px-4 py-2 rounded-full font-semibold transition-colors text-base ${
-                form.role === role
-                  ? "bg-primary text-black"
-                  : "bg-background hover:bg-primary/10 text-foreground"
-              }`}
-              onClick={() => setForm({ ...form, role })}
-            >
-              {role}
-            </Button>
-          ))}
+        <div className="space-y-6">
+          <div>
+            <label className="block text-sm font-medium mb-2 text-left">
+              Your Name
+            </label>
+            <Input
+              type="text"
+              placeholder="Enter your name"
+              {...register("name", { required: true })}
+              value={form.name}
+              onChange={(e) =>
+                setValue("name", e.target.value, { shouldValidate: true })
+              }
+              className="text-base"
+            />
+            {errors.name && (
+              <span className="text-xs text-red-500">Name is required</span>
+            )}
+          </div>
+          {/* <div>
+            <label className="block text-sm font-medium mb-2 text-left">
+              Company Name
+            </label>
+            <Input
+              type="text"
+              placeholder="Enter company name"
+              value={form.company}
+              onChange={(e) => setForm({ ...form, company: e.target.value })}
+              className="text-base"
+            />
+          </div> */}
+          <div>
+            <label className="block text-sm font-medium mb-3 text-left">
+              Your Role
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {["Sales", "Marketing", "Founder", "Other"].map((role) => (
+                <Button
+                  key={role}
+                  type="button"
+                  variant={form.role === role ? "default" : "outline"}
+                  className={`px-4 py-2 rounded-full font-semibold transition-colors text-base ${
+                    form.role === role
+                      ? "bg-primary text-black"
+                      : "bg-background hover:bg-primary/10 text-foreground"
+                  }`}
+                  onClick={() =>
+                    setValue("role", role, { shouldValidate: true })
+                  }
+                >
+                  {role}
+                </Button>
+              ))}
+            </div>
+            {errors.role && (
+              <span className="text-xs text-red-500">Role is required</span>
+            )}
+          </div>
         </div>
       ),
-      isValid: !!form.role,
+      isValid: !!form.name.trim() && !!form.role,
     },
     {
-      label: "What's your company name?",
+      label: "What brings you to AlignMail?",
       content: (
-        <Input
-          type="text"
-          placeholder="Enter company name"
-          value={form.company}
-          onChange={(e) => setForm({ ...form, company: e.target.value })}
-          className="text-base"
-        />
-      ),
-      isValid: !!form.company.trim(),
-    },
-    {
-      label: "What's your primary goal with AlignMail?",
-      content: (
-        <div className="flex flex-wrap gap-2 justify-center">
-          {[
-            "Book more meetings",
-            "Nurture leads",
-            "Brand awareness",
-            "Other",
-          ].map((goal) => (
-            <Button
-              key={goal}
-              type="button"
-              variant={form.goal === goal ? "default" : "outline"}
-              className={`px-4 py-2 rounded-full font-semibold transition-colors text-base ${
-                form.goal === goal
-                  ? "bg-primary text-black"
-                  : "bg-background hover:bg-primary/10 text-foreground"
-              }`}
-              onClick={() => setForm({ ...form, goal })}
-            >
-              {goal}
-            </Button>
-          ))}
+        <div className="space-y-6">
+          <div>
+            <label className="block text-sm font-medium mb-3 text-left">
+              Primary Goal
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {[
+                "Book more meetings",
+                "Nurture leads",
+                "Brand awareness",
+                "Other",
+              ].map((goal) => (
+                <Button
+                  key={goal}
+                  type="button"
+                  variant={form.goal === goal ? "default" : "outline"}
+                  className={`px-4 py-2 rounded-full font-semibold transition-colors text-base ${
+                    form.goal === goal
+                      ? "bg-primary text-black"
+                      : "bg-background hover:bg-primary/10 text-foreground"
+                  }`}
+                  onClick={() =>
+                    setValue("goal", goal, { shouldValidate: true })
+                  }
+                >
+                  {goal}
+                </Button>
+              ))}
+            </div>
+            {errors.goal && (
+              <span className="text-xs text-red-500">Goal is required</span>
+            )}
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-3 text-left">
+              Emails Per Week
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {["0-50", "51-200", "201-500", "500+"].map((emails) => (
+                <Button
+                  key={emails}
+                  type="button"
+                  variant={
+                    form.emailsPerWeek === emails ? "default" : "outline"
+                  }
+                  className={`px-4 py-2 rounded-full font-semibold transition-colors text-base ${
+                    form.emailsPerWeek === emails
+                      ? "bg-primary text-black"
+                      : "bg-background hover:bg-primary/10 text-foreground"
+                  }`}
+                  onClick={() =>
+                    setValue("emailsPerWeek", emails, { shouldValidate: true })
+                  }
+                >
+                  {emails}
+                </Button>
+              ))}
+            </div>
+            {errors.emailsPerWeek && (
+              <span className="text-xs text-red-500">
+                This field is required
+              </span>
+            )}
+          </div>
         </div>
       ),
-      isValid: !!form.goal,
-    },
-    {
-      label: "How many emails do you send per week?",
-      content: (
-        <div className="flex flex-wrap gap-2 justify-center">
-          {["0-50", "51-200", "201-500", "500+"].map((emails) => (
-            <Button
-              key={emails}
-              type="button"
-              variant={form.emailsPerWeek === emails ? "default" : "outline"}
-              className={`px-4 py-2 rounded-full font-semibold transition-colors text-base ${
-                form.emailsPerWeek === emails
-                  ? "bg-primary text-black"
-                  : "bg-background hover:bg-primary/10 text-foreground"
-              }`}
-              onClick={() => setForm({ ...form, emailsPerWeek: emails })}
-            >
-              {emails}
-            </Button>
-          ))}
-        </div>
-      ),
-      isValid: !!form.emailsPerWeek,
+      isValid: !!form.goal && !!form.emailsPerWeek,
     },
   ];
 
@@ -126,35 +173,14 @@ function OnboardingPage() {
       className="mx-auto mb-4 text-primary animate-float"
       size={48}
     />,
-    <UserCheck
-      key="usercheck"
-      className="mx-auto mb-4 text-secondary animate-float delay-500"
-      size={48}
-    />,
     <Sparkles
-      key="company"
-      className="mx-auto mb-4 text-accent animate-float delay-1000"
-      size={48}
-    />,
-    <UserCheck
       key="goal"
-      className="mx-auto mb-4 text-primary animate-float delay-1500"
-      size={48}
-    />,
-    <Sparkles
-      key="emails"
-      className="mx-auto mb-4 text-secondary animate-float delay-2000"
+      className="mx-auto mb-4 text-secondary animate-float delay-500"
       size={48}
     />,
   ];
 
-  const stepTitles = [
-    "Your Name",
-    "Your Role",
-    "Company Name",
-    "Your Goal",
-    "Email Volume",
-  ];
+  const stepTitles = ["About You", "Your Goals"];
 
   const isLastStep = step === steps.length - 1;
   const handleNext = () => {
@@ -166,7 +192,6 @@ function OnboardingPage() {
         setTransitioning(false);
       }, 250);
     }
-    // else: submit or finish
   };
   const handleBack = () => {
     if (step === 0) return;
@@ -218,7 +243,7 @@ function OnboardingPage() {
         </aside>
         {/* Question Card */}
         <main className="flex-1 flex flex-col justify-center items-center px-2 sm:px-4 py-6 md:py-10 min-w-0">
-          <Card className="w-full max-w-md mx-auto rounded-2xl shadow-xl border border-border/30 text-center transition-all duration-300 flex flex-col min-h-[28rem] min-w-0 bg-white/90 dark:bg-card/90">
+          <Card className="w-full max-w-md mx-auto rounded-2xl shadow-xl border border-border/30 text-center transition-all duration-300 flex flex-col min-h-[32rem] min-w-0 bg-white/90 dark:bg-card/90">
             <CardHeader>
               {stepIcons[step]}
               <CardTitle className="text-xl sm:text-2xl md:text-3xl font-bold mb-2 leading-tight">
@@ -246,7 +271,7 @@ function OnboardingPage() {
                         className="px-8 font-bold rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all min-w-[120px]"
                         disabled={!steps[step].isValid || transitioning}
                       >
-                        Finish <ArrowRight className="ml-2" size={20} />
+                        Get Started <ArrowRight className="ml-2" size={20} />
                       </Button>
                     </Link>
                   ) : (
@@ -256,7 +281,7 @@ function OnboardingPage() {
                       disabled={!steps[step].isValid || transitioning}
                       onClick={handleNext}
                     >
-                      Next <ArrowRight className="ml-2" size={20} />
+                      Continue <ArrowRight className="ml-2" size={20} />
                     </Button>
                   )}
                 </div>

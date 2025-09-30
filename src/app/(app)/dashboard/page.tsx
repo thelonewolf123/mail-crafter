@@ -1,457 +1,427 @@
 "use client";
+import { useEffect, useState } from "react";
+import {
+  Sparkles,
+  Mail,
+  FileText,
+  Loader2,
+  Check,
+  ArrowRight,
+  Clock,
+  Plus,
+  Pencil,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { EmailPreferenceDialog } from "./email-preference-dialog";
 
-import { useState, useEffect } from "react";
-import { Sparkles, Mail, FileText, Loader2, List } from "lucide-react";
+// Types
+interface Post {
+  title: string;
+}
 
-// Topbar component
+interface ProfileData {
+  posts: Post[];
+}
+
+interface HistoryItem {
+  url: string;
+  email: string;
+  posts: Post[];
+  timestamp: string;
+}
+
 function Topbar() {
   return (
-    <header className="w-full px-4 py-4 border-b border-border/30 bg-background/80 backdrop-blur-md flex items-center justify-between">
+    <header className="w-full px-6 py-4 border-b border-border/30 bg-background/80 backdrop-blur-md flex items-center justify-between">
       <div className="flex items-center gap-2">
         <Sparkles className="text-primary" size={28} />
-        <span className="font-bold text-xl text-foreground">
-          AlignMail Dashboard
-        </span>
+        <span className="font-bold text-xl text-foreground">AlignMail</span>
       </div>
-      <nav className="flex gap-4">
-        <a
-          href="/onboarding"
-          className="text-muted-foreground hover:text-primary transition-colors font-medium"
-        >
-          Onboarding
-        </a>
-        <a href="/dashboard" className="text-primary font-semibold">
-          Dashboard
-        </a>
-      </nav>
     </header>
   );
 }
 
-// UrlInputBox component
-interface UrlInputBoxProps {
-  value: string;
-  onChange: (value: string) => void;
-  onSubmit: (data: { url: string; intent: string; tone: string }) => void;
-  error?: string;
-  disabled?: boolean;
-  isLoading?: boolean;
-}
-function UrlInputBox({
-  value,
-  onChange,
-  onSubmit,
-  error,
-  disabled,
-  isLoading,
-}: UrlInputBoxProps) {
-  const [input, setInput] = useState(value || "");
-  useEffect(() => {
-    setInput(value);
-  }, [value]);
-  return (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        onSubmit({ url: input, intent: "", tone: "professional" });
-      }}
-      className="w-full bg-white/80 dark:bg-card/90 rounded-xl shadow-lg border border-border/30 p-5 flex flex-col gap-4 backdrop-blur-xl"
-    >
-      <label
-        htmlFor="linkedin"
-        className="text-lg font-semibold text-left mb-1 text-foreground"
-      >
-        Paste your LinkedIn profile URL
-      </label>
-      <div className="flex gap-2">
-        <input
-          id="linkedin"
-          type="url"
-          placeholder="https://www.linkedin.com/in/your-profile"
-          value={input}
-          onChange={(e) => {
-            setInput(e.target.value);
-            if (onChange) onChange(e.target.value);
-          }}
-          required
-          className="flex-1 px-3 py-2 rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-primary text-base bg-background/80"
-          autoFocus
-          disabled={disabled}
-        />
-        <button
-          type="submit"
-          disabled={disabled || !input}
-          className="font-bold px-4 py-2 rounded-lg bg-primary text-white hover:bg-primary/90 transition-colors disabled:opacity-60 text-base shadow"
-        >
-          {isLoading ? (
-            <Loader2 className="animate-spin" size={20} />
-          ) : (
-            "Generate"
-          )}
-        </button>
-      </div>
-      {error && <div className="text-red-500 text-sm mt-1">{error}</div>}
-    </form>
-  );
-}
-
-// EmailResultCard component
-interface EmailResultCardProps {
-  email: string;
-  onCopy: () => void;
-  onRegenerate: () => void;
-  onEdit?: (newEmail: string) => void;
-  metadata?: { generatedAt?: string; promptUsed?: string };
-}
-function EmailResultCard({
-  email,
-  onCopy,
-  onRegenerate,
-  metadata,
-}: EmailResultCardProps) {
-  return (
-    <div className="bg-white/80 dark:bg-card/90 rounded-xl shadow-lg border border-border/30 p-5 flex flex-col min-h-[180px] backdrop-blur-xl">
-      <div className="flex items-center gap-2 mb-3">
-        <Mail className="text-primary" size={20} />
-        <span className="font-semibold text-base">Your Custom Email</span>
-      </div>
-      <pre className="whitespace-pre-wrap text-base text-left text-foreground font-mono bg-muted/10 rounded-lg p-3 mt-1">
-        {email}
-      </pre>
-      <div className="flex gap-2 mt-4">
-        <button
-          onClick={onCopy}
-          className="px-3 py-1 rounded-lg bg-muted hover:bg-primary/10 text-sm font-medium shadow"
-        >
-          Copy
-        </button>
-        <button
-          onClick={onRegenerate}
-          className="px-3 py-1 rounded-lg bg-muted hover:bg-primary/10 text-sm font-medium shadow"
-        >
-          Regenerate
-        </button>
-      </div>
-      {metadata && (
-        <div className="text-xs text-muted-foreground mt-2">
-          Generated at: {metadata.generatedAt || "-"}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ScrapeList component
-interface ScrapeListProps {
-  items: { title?: string }[];
-  onExpand?: (idx: number) => void;
-}
-function ScrapeList({ items, onExpand }: ScrapeListProps) {
-  return (
-    <div className="bg-white/80 dark:bg-card/90 rounded-xl shadow-lg border border-border/30 p-5 flex flex-col min-h-[120px] backdrop-blur-xl">
-      <div className="flex items-center gap-2 mb-3">
-        <List className="text-primary" size={20} />
-        <span className="font-semibold text-base">Crawled LinkedIn Posts</span>
-      </div>
-      {items && items.length > 0 ? (
-        <ul className="list-disc pl-5 space-y-2 text-left text-foreground">
-          {items.map((post: { title?: string }, idx: number) => (
-            <li
-              key={idx}
-              className="hover:bg-primary/10 rounded px-2 py-1 transition-colors cursor-pointer text-sm"
-              onClick={() => onExpand && onExpand(idx)}
-            >
-              {post.title || "Untitled Post"}
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <div className="text-muted-foreground">No posts found.</div>
-      )}
-    </div>
-  );
-}
-
-// HistoryPanel component
-interface HistoryItem {
-  url: string;
-  email: string;
-  intent: string;
-  tone: string;
-  metadata?: { generatedAt?: string; promptUsed?: string };
-}
-interface HistoryPanelProps {
-  onSelectGeneration: (generation: HistoryItem) => void;
-  history: HistoryItem[];
-}
-function HistoryPanel({ onSelectGeneration, history }: HistoryPanelProps) {
-  return (
-    <div className="bg-card/90 rounded-lg border border-border/30 p-4 shadow">
-      <div className="font-semibold mb-2 flex items-center gap-2 text-base">
-        <FileText className="w-4 h-4 text-primary" />
-        History
-      </div>
-      {history && history.length > 0 ? (
-        <ul className="text-sm space-y-1">
-          {history.map((item: HistoryItem, idx: number) => (
-            <li key={idx}>
-              <button
-                className="hover:underline text-primary"
-                onClick={() => onSelectGeneration(item)}
-              >
-                {item.url}
-              </button>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <div className="text-muted-foreground text-sm">No history yet.</div>
-      )}
-    </div>
-  );
-}
-
-// EmailTemplates component
-interface EmailTemplate {
-  name: string;
-  tone: string;
-  description: string;
-}
-interface EmailTemplatesProps {
-  onSelectTemplate: (template: EmailTemplate) => void;
-}
-function EmailTemplates({ onSelectTemplate }: EmailTemplatesProps) {
-  const templates = [
-    {
-      name: "Connection",
-      tone: "friendly",
-      description: "Connect with a new contact.",
-    },
-    {
-      name: "Follow Up",
-      tone: "professional",
-      description: "Follow up after a meeting.",
-    },
-    {
-      name: "Pitch",
-      tone: "persuasive",
-      description: "Pitch your product or service.",
-    },
-  ];
-  return (
-    <div className="bg-card/90 rounded-lg border border-border/30 p-4 shadow">
-      <div className="font-semibold mb-2 flex items-center gap-2 text-base">
-        <Mail className="w-4 h-4 text-primary" />
-        Templates
-      </div>
-      <div className="flex gap-2 flex-wrap">
-        {templates.map((tpl, i) => (
-          <button
-            key={i}
-            onClick={() => onSelectTemplate && onSelectTemplate(tpl)}
-            className="px-3 py-1 rounded-lg bg-muted hover:bg-primary/10 text-sm font-medium shadow"
-          >
-            {tpl.name}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// EmailGenerationSkeleton component
-function EmailGenerationSkeleton() {
-  return (
-    <div className="bg-muted/30 animate-pulse rounded-lg h-32 w-full shadow" />
-  );
-}
-// ScrapeListSkeleton component
-function ScrapeListSkeleton() {
-  return (
-    <div className="bg-muted/30 animate-pulse rounded-lg h-32 w-full shadow" />
-  );
-}
-// EmptyState component
-interface EmptyStateProps {
-  icon: React.ComponentType<{ className?: string }>;
-  title: string;
-  description: string;
-}
-function EmptyState({ icon: Icon, title, description }: EmptyStateProps) {
-  return (
-    <div className="flex flex-col items-center justify-center bg-card/90 rounded-lg border border-border/30 p-8 shadow">
-      <Icon className="w-8 h-8 text-primary mb-2" />
-      <div className="font-semibold text-base mb-1">{title}</div>
-      <div className="text-muted-foreground text-sm text-center">
-        {description}
-      </div>
-    </div>
-  );
-}
-
 export default function DashboardPage() {
+  const [currentStep, setCurrentStep] = useState<number>(0);
   const [url, setUrl] = useState<string>("");
-  const [intent, setIntent] = useState<string>("");
-  const [tone, setTone] = useState<string>("professional");
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string>("");
-  const [result, setResult] = useState<{
-    email: string;
-    metadata: { generatedAt?: string; promptUsed?: string };
-    scraped: { title?: string }[];
-  } | null>(null);
+  const [profileData, setProfileData] = useState<ProfileData | null>(null);
+  const [generatedEmail, setGeneratedEmail] = useState<string>("");
   const [history, setHistory] = useState<HistoryItem[]>([]);
+  const [showEmailPref, setShowEmailPref] = useState(false);
+  const [hasEmailPref, setHasEmailPref] = useState<boolean>(false);
 
-  const handleGenerate = async (data: {
-    url: string;
-    intent: string;
-    tone: string;
-  }) => {
-    setError("");
+  // Check for email preferences in localStorage on mount
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const pref = localStorage.getItem("emailPreference");
+      setHasEmailPref(!!pref);
+    }
+  }, []);
+
+  const handleUrlSubmit = () => {
+    if (!url) return;
+
     setIsLoading(true);
-    setResult(null);
-    setIntent(data.intent);
-    setTone(data.tone);
+    setCurrentStep(1);
+
     setTimeout(() => {
-      const mockEmail = `Hi there,\n\nI came across your LinkedIn profile and was impressed by your recent work. I'd love to connect and explore how we can collaborate or add value to each other's networks.\n\nBest,\nAlignMail Team`;
       const mockPosts = [
         { title: "How AI is transforming B2B outreach in 2024" },
         { title: "5 tips for writing cold emails that get replies" },
         { title: "Celebrating 1,000+ connections!" },
         { title: "Excited to announce our new product launch" },
       ];
-      const mockResult = {
-        email: mockEmail,
-        metadata: {
-          generatedAt: new Date().toLocaleString(),
-          promptUsed: "Mock",
-        },
-        scraped: mockPosts,
-      };
-      setResult(mockResult);
-      setHistory((prev) => [
-        {
-          url: data.url,
-          email: mockEmail,
-          intent: data.intent,
-          tone: data.tone,
-          metadata: mockResult.metadata,
-        },
-        ...prev,
-      ]);
+      setProfileData({ posts: mockPosts });
       setIsLoading(false);
+      setCurrentStep(2);
+    }, 2000);
+  };
+
+  const handleGenerateEmail = () => {
+    setIsLoading(true);
+    setCurrentStep(3);
+
+    setTimeout(() => {
+      const mockEmail = `Hi there,
+
+I came across your LinkedIn profile and was impressed by your recent work on AI-driven B2B outreach strategies. Your insights on cold email best practices really resonated with me.
+
+I'd love to connect and explore how we can collaborate or add value to each other's networks.
+
+Best regards,
+AlignMail Team`;
+
+      setGeneratedEmail(mockEmail);
+      setIsLoading(false);
+      setCurrentStep(4);
+
+      const newHistoryItem = {
+        url,
+        email: mockEmail,
+        posts: profileData?.posts || [],
+        timestamp: new Date().toLocaleString(),
+      };
+      setHistory((prev) => [newHistoryItem, ...prev]);
     }, 1500);
   };
 
-  const handleCopy = () => {
-    if (result?.email) navigator.clipboard.writeText(result.email);
+  const handleReset = () => {
+    setCurrentStep(0);
+    setUrl("");
+    setProfileData(null);
+    setGeneratedEmail("");
   };
-  const handleRegenerate = () => {
-    if (url) {
-      handleGenerate({ url, intent, tone });
+
+  const handleSelectHistory = (item: HistoryItem) => {
+    setUrl(item.url);
+    setProfileData({ posts: item.posts });
+    setGeneratedEmail(item.email);
+    setCurrentStep(4);
+  };
+
+  const handleEmailPrefSubmit = (data: any) => {
+    // Store email preferences in localStorage
+    if (typeof window !== "undefined") {
+      localStorage.setItem("emailPreference", JSON.stringify(data));
+      setHasEmailPref(true);
     }
-  };
-  const handleEdit = (newEmail: string) => {
-    if (result) {
-      setResult({ ...result, email: newEmail });
-    }
-  };
-  const handleExpandPost = (idx: number) => {
-    alert("Expand post: " + idx);
-  };
-  const handleSelectGeneration = (generation: HistoryItem) => {
-    setUrl(generation.url);
-    setIntent(generation.intent);
-    setTone(generation.tone);
-    setResult({
-      email: generation.email,
-      metadata: generation.metadata || {},
-      scraped: [],
-    });
-  };
-  const handleSelectTemplate = (template: EmailTemplate) => {
-    setTone(template.tone);
-    setIntent(
-      `Generate a ${template.name.toLowerCase()} email. ${template.description}`
-    );
-    alert(
-      `${template.name} template applied. Enter a LinkedIn URL to generate.`
-    );
+    setShowEmailPref(false);
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-secondary/10 flex flex-col font-sans">
+    <div className="min-h-screen bg-gradient-to-tr from-primary/5 via-background to-secondary/10 flex flex-col font-sans">
       <Topbar />
-      <main className="container mx-auto px-2 sm:px-6 py-8 max-w-7xl flex-1 min-w-0">
-        <div className="mb-10 animate-fade-in-up min-w-0">
-          <div className="flex items-center gap-3 mb-2 min-w-0 flex-wrap">
-            <div className="w-9 h-9 bg-primary/10 rounded-xl flex items-center justify-center shadow-md min-w-0">
-              <Sparkles className="w-5 h-5 text-primary" />
+      <main className="flex-1 flex overflow-hidden">
+        {/* Left Side - Timeline */}
+        <div className="w-full lg:w-3/5 flex flex-col overflow-y-auto px-4 py-8 lg:px-12 lg:py-12 space-y-10">
+          <div className="max-w-2xl mx-auto w-full space-y-10">
+            <div className="space-y-2">
+              <h1 className="text-3xl font-bold text-foreground">
+                Email Crafter
+              </h1>
+              <p className="text-lg text-muted-foreground">
+                Generate personalized emails from LinkedIn profiles
+              </p>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground min-w-0">
-              Email Crafter
-            </h1>
+
+            {/* Timeline Steps */}
+            <Card className="relative space-y-10 bg-card/90 border border-border/30 shadow-xl px-6 py-8 lg:px-10 lg:py-12">
+              {/* Step 1: Enter URL */}
+              <div className="relative">
+                <div className="flex items-start gap-6">
+                  <div
+                    className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${
+                      currentStep >= 1
+                        ? "bg-primary text-black"
+                        : "bg-muted text-muted-foreground"
+                    }`}
+                  >
+                    {currentStep >= 1 ? <Check size={20} /> : "1"}
+                  </div>
+                  <div className="flex-1 pb-10">
+                    <h3 className="text-lg font-semibold mb-3">
+                      Enter LinkedIn Profile URL
+                    </h3>
+                    <div className="space-y-4">
+                      <Input
+                        type="url"
+                        placeholder="https://www.linkedin.com/in/username"
+                        value={url}
+                        onChange={(e) => setUrl(e.target.value)}
+                        disabled={currentStep > 0}
+                        onKeyDown={(e) =>
+                          e.key === "Enter" && handleUrlSubmit()
+                        }
+                      />
+                      {currentStep === 0 && (
+                        <Button
+                          onClick={handleUrlSubmit}
+                          disabled={!url}
+                          className="w-full sm:w-auto"
+                        >
+                          Analyze Profile
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                {currentStep >= 1 && (
+                  <div className="absolute left-5 top-12 w-0.5 h-full bg-border"></div>
+                )}
+              </div>
+              {/* Step 2: Analyzing */}
+              {currentStep >= 1 && (
+                <div className="relative">
+                  <div className="flex items-start gap-6">
+                    <div
+                      className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${
+                        currentStep >= 2
+                          ? "bg-primary text-black"
+                          : "bg-muted text-muted-foreground"
+                      }`}
+                    >
+                      {isLoading && currentStep === 1 ? (
+                        <Loader2 size={20} className="animate-spin" />
+                      ) : currentStep >= 2 ? (
+                        <Check size={20} />
+                      ) : (
+                        "2"
+                      )}
+                    </div>
+                    <div className="flex-1 pb-10">
+                      <h3 className="text-lg font-semibold mb-2">
+                        Analyzing Profile
+                      </h3>
+                      {isLoading && currentStep === 1 ? (
+                        <p className="text-muted-foreground">
+                          Fetching LinkedIn posts and profile data...
+                        </p>
+                      ) : currentStep >= 2 ? (
+                        <p className="text-muted-foreground">
+                          ✓ Profile analyzed successfully
+                        </p>
+                      ) : null}
+                    </div>
+                  </div>
+                  {currentStep >= 2 && (
+                    <div className="absolute left-5 top-12 w-0.5 h-full bg-border"></div>
+                  )}
+                </div>
+              )}
+              {/* Step 3: Customize Email */}
+              {currentStep >= 2 && (
+                <div className="relative">
+                  <div className="flex items-start gap-6">
+                    <div
+                      className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${
+                        currentStep >= 3
+                          ? "bg-primary text-background"
+                          : "bg-muted text-muted-foreground"
+                      }`}
+                    >
+                      {currentStep >= 3 ? <Check size={20} /> : "3"}
+                    </div>
+                    <div className="flex-1 pb-10">
+                      <h3 className="text-lg font-semibold mb-3 text-foreground">
+                        Product Details
+                      </h3>
+                      <div className="space-y-5">
+                        <div>
+                          <Button
+                            onClick={() => setShowEmailPref(true)}
+                            variant="default"
+                            className={`mb-2 w-full sm:w-auto font-semibold flex items-center gap-2 shadow rounded-lg px-4 py-2 text-base ${
+                              !hasEmailPref ? "animate-pulse" : ""
+                            }`}
+                          >
+                            {hasEmailPref ? (
+                              <Pencil size={18} className="mr-1" />
+                            ) : (
+                              <Plus size={18} className="mr-1" />
+                            )}
+                            {hasEmailPref
+                              ? "Edit Product Details"
+                              : "Enter Your Product Details"}
+                          </Button>
+                        </div>
+                        {/* Show Create Personalized Email only if preferences exist */}
+                        {hasEmailPref && currentStep === 2 && (
+                          <Button
+                            onClick={handleGenerateEmail}
+                            variant="default"
+                            className="flex items-center gap-2 w-full sm:w-auto font-bold"
+                          >
+                            Create Personalized Email <ArrowRight size={18} />
+                          </Button>
+                        )}
+                        {/* If no preferences, show a hint */}
+                        {!hasEmailPref && currentStep === 2 && (
+                          <p className="text-sm text-destructive font-semibold mt-2">
+                            Please click to enter your product details to
+                            generate an email.
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  {currentStep >= 3 && (
+                    <div className="absolute left-5 top-12 w-0.5 h-full bg-border"></div>
+                  )}
+                </div>
+              )}
+              {/* Step 4: Email Generated */}
+              {currentStep >= 3 && (
+                <div className="relative">
+                  <div className="flex items-start gap-6">
+                    <div
+                      className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${
+                        currentStep >= 4
+                          ? "bg-primary text-black"
+                          : "bg-muted text-muted-foreground"
+                      }`}
+                    >
+                      {isLoading && currentStep === 3 ? (
+                        <Loader2 size={20} className="animate-spin" />
+                      ) : currentStep >= 4 ? (
+                        <Check size={20} />
+                      ) : (
+                        "4"
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-lg font-semibold mb-2">
+                        Email Generated
+                      </h3>
+                      {isLoading && currentStep === 3 ? (
+                        <p className="text-muted-foreground">
+                          Crafting your personalized email...
+                        </p>
+                      ) : currentStep >= 4 ? (
+                        <div className="space-y-4">
+                          <p className="text-muted-foreground">
+                            ✓ Your email is ready!
+                          </p>
+                          <Button
+                            onClick={handleReset}
+                            variant="outline"
+                            className="w-full sm:w-auto"
+                          >
+                            Create Another Email
+                          </Button>
+                        </div>
+                      ) : null}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </Card>
           </div>
-          <p className="text-base sm:text-lg text-muted-foreground max-w-2xl min-w-0">
-            Generate personalized emails from LinkedIn profiles using AI.
-          </p>
         </div>
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 lg:gap-12 min-w-0">
-          {/* Left column - Input */}
-          <div className="space-y-8 animate-fade-in-up flex flex-col min-w-0 flex-1">
-            <UrlInputBox
-              value={url}
-              onChange={setUrl}
-              onSubmit={handleGenerate}
-              error={error}
-              disabled={isLoading}
-              isLoading={isLoading}
-            />
-            <div className="grid grid-cols-1 gap-6 min-w-0">
-              <HistoryPanel
-                onSelectGeneration={handleSelectGeneration}
-                history={history}
-              />
-              <EmailTemplates onSelectTemplate={handleSelectTemplate} />
-            </div>
-          </div>
-          {/* Right column - Results */}
-          <div className="space-y-8 animate-slide-in-right flex flex-col min-w-0 flex-1">
-            {isLoading ? (
-              <>
-                <EmailGenerationSkeleton />
-                <ScrapeListSkeleton />
-              </>
-            ) : result ? (
-              <>
-                <EmailResultCard
-                  email={result.email}
-                  onCopy={handleCopy}
-                  onRegenerate={handleRegenerate}
-                  onEdit={handleEdit}
-                  metadata={result.metadata}
-                />
-                <ScrapeList
-                  items={result.scraped || []}
-                  onExpand={handleExpandPost}
-                />
-              </>
-            ) : (
-              <>
-                <EmptyState
-                  icon={Mail}
-                  title="Ready to generate emails"
-                  description="Enter a LinkedIn profile URL on the left to create your first personalized email."
-                />
-                <EmptyState
-                  icon={FileText}
-                  title="LinkedIn posts will appear here"
-                  description="After generating an email, you'll see the LinkedIn posts that were analyzed to create your personalized message."
-                />
-              </>
+        {/* Right Side - Results & History */}
+        <div className="hidden lg:flex lg:w-2/5 border-l border-border/30 bg-background/80 flex-col overflow-hidden">
+          <div className="flex-1 overflow-y-auto p-8 space-y-8">
+            {/* LinkedIn Posts */}
+            {profileData && (
+              <Card className="bg-card/90 rounded-xl shadow-lg border border-border/30 p-6 space-y-4">
+                <div className="flex items-center gap-2 mb-4">
+                  <FileText className="text-primary" size={20} />
+                  <h3 className="font-semibold text-lg">
+                    Recent LinkedIn Posts
+                  </h3>
+                </div>
+                <ul className="space-y-3">
+                  {profileData.posts.map((post, idx) => (
+                    <li
+                      key={idx}
+                      className="p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors"
+                    >
+                      <p className="text-sm font-medium">{post.title}</p>
+                    </li>
+                  ))}
+                </ul>
+              </Card>
+            )}
+            {/* Generated Email */}
+            {generatedEmail && (
+              <Card className="bg-card/90 rounded-xl shadow-lg border border-border/30 p-6 space-y-4">
+                <div className="flex items-center gap-2 mb-4">
+                  <Mail className="text-primary" size={20} />
+                  <h3 className="font-semibold text-lg">Generated Email</h3>
+                </div>
+                <pre className="whitespace-pre-wrap text-sm font-sans bg-muted/20 rounded-lg p-4 mb-4">
+                  {generatedEmail}
+                </pre>
+                <Button
+                  onClick={() => navigator.clipboard.writeText(generatedEmail)}
+                  className="font-medium w-full sm:w-auto"
+                >
+                  Copy Email
+                </Button>
+              </Card>
+            )}
+            {/* History */}
+            {history.length > 0 && (
+              <Card className="bg-card/90 rounded-xl shadow-lg border border-border/30 p-6 space-y-4">
+                <div className="flex items-center gap-2 mb-4">
+                  <Clock className="text-primary" size={20} />
+                  <h3 className="font-semibold text-lg">History</h3>
+                </div>
+                <ul className="space-y-3">
+                  {history.map((item, idx) => (
+                    <li
+                      key={idx}
+                      onClick={() => handleSelectHistory(item)}
+                      className="p-3 bg-muted/30 rounded-lg hover:bg-primary/10 transition-colors cursor-pointer"
+                    >
+                      <p className="text-sm font-medium truncate">{item.url}</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {item.timestamp}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              </Card>
+            )}
+            {/* Empty State */}
+            {!profileData && !generatedEmail && history.length === 0 && (
+              <div className="flex flex-col items-center justify-center h-full text-center p-8">
+                <Sparkles className="w-16 h-16 text-primary/30 mb-4" />
+                <h3 className="text-lg font-semibold mb-2">Start Creating</h3>
+                <p className="text-muted-foreground">
+                  Enter a LinkedIn URL to begin crafting personalized emails
+                </p>
+              </div>
             )}
           </div>
         </div>
+        <EmailPreferenceDialog
+          open={showEmailPref}
+          onClose={() => setShowEmailPref(false)}
+          onSubmit={handleEmailPrefSubmit}
+        />
       </main>
     </div>
   );
