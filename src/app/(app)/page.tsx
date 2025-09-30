@@ -10,6 +10,7 @@ import {
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Features } from "@/components/internal/landing/features";
 
 function LandingPage() {
   return (
@@ -37,7 +38,7 @@ function LandingPage() {
       </header>
 
       {/* Hero Section */}
-      <section className="relative flex-1 flex items-center justify-center overflow-hidden min-h-[70vh]">
+      <section className="relative flex-1 flex items-center mt-40 justify-center overflow-hidden min-h-[70vh]">
         <div className="absolute inset-0">
           <div className="absolute top-20 left-20 w-60 h-60 sm:w-72 sm:h-72 bg-primary/10 rounded-full blur-3xl animate-pulse"></div>
           <div className="absolute bottom-32 right-16 w-72 h-72 sm:w-96 sm:h-96 bg-secondary/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
@@ -71,7 +72,7 @@ function LandingPage() {
           </h1>
           <p className="text-base sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed">
             Craft personalized emails that speak directly to your prospect's
-            pain points, goals, and interests—turning cold leads into qualified
+            pain points, goals, and interests. turning cold leads into qualified
             meetings.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -170,6 +171,7 @@ function LandingPage() {
           </div>
         </div>
       </section>
+      <Features />
     </div>
   );
 }

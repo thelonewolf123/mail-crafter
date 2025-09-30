@@ -4,6 +4,7 @@ import { Sparkles, Mail, Linkedin } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 export default function ContactPage() {
   const [form, setForm] = useState({ name: "", email: "", message: "" });
@@ -83,22 +84,22 @@ export default function ContactPage() {
           </form>
         )}
         <div className="border-t border-border/30 pt-6 mt-2 flex flex-col gap-3 items-center">
-          <a
-            href="https://www.linkedin.com/in/your-linkedin-profile"
+          <Link
+            href="https://www.linkedin.com/in/himal-b-180b701a5/"
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-2 text-primary hover:underline text-base"
           >
             <Linkedin className="w-5 h-5" />
             LinkedIn
-          </a>
-          <a
+          </Link>
+          <Link
             href="mailto:your@email.com"
             className="flex items-center gap-2 text-primary hover:underline text-base"
           >
             <Mail className="w-5 h-5" />
-            your@email.com
-          </a>
+            himal@watchwithme.in
+          </Link>
         </div>
       </div>
     </div>
