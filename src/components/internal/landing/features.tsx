@@ -5,7 +5,7 @@ export function Features() {
   return (
     <section className="bg-background py-16 md:py-32 text-foreground">
       <h1 className="text-4xl font-bold text-center mb-10">
-        The B2B Email Crafter
+        Why B2B Email Crafter?
       </h1>
       <div className="mx-auto max-w-3xl lg:max-w-5xl px-6">
         <div className="relative">
