@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmailPreferenceDialog } from "./email-preference-dialog";
+import { EmailSummary } from "./email-summary";
 
 // Types
 interface Post {
@@ -329,83 +330,27 @@ AlignMail Team`;
                 </div>
               )}
             </Card>
+
+            {/* Mobile-only: Results & History below timeline */}
+            <div className="block lg:hidden">
+              <EmailSummary
+                profileData={profileData}
+                generatedEmail={generatedEmail}
+                history={history}
+                onSelectHistory={handleSelectHistory}
+              />
+            </div>
           </div>
         </div>
         {/* Right Side - Results & History */}
         <div className="hidden lg:flex lg:w-2/5 border-l border-border/30 bg-background/80 flex-col overflow-hidden">
-          <div className="flex-1 overflow-y-auto p-8 space-y-8">
-            {/* LinkedIn Posts */}
-            {profileData && (
-              <Card className="bg-card/90 rounded-xl shadow-lg border border-border/30 p-6 space-y-4">
-                <div className="flex items-center gap-2 mb-4">
-                  <FileText className="text-primary" size={20} />
-                  <h3 className="font-semibold text-lg">
-                    Recent LinkedIn Posts
-                  </h3>
-                </div>
-                <ul className="space-y-3">
-                  {profileData.posts.map((post, idx) => (
-                    <li
-                      key={idx}
-                      className="p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors"
-                    >
-                      <p className="text-sm font-medium">{post.title}</p>
-                    </li>
-                  ))}
-                </ul>
-              </Card>
-            )}
-            {/* Generated Email */}
-            {generatedEmail && (
-              <Card className="bg-card/90 rounded-xl shadow-lg border border-border/30 p-6 space-y-4">
-                <div className="flex items-center gap-2 mb-4">
-                  <Mail className="text-primary" size={20} />
-                  <h3 className="font-semibold text-lg">Generated Email</h3>
-                </div>
-                <pre className="whitespace-pre-wrap text-sm font-sans bg-muted/20 rounded-lg p-4 mb-4">
-                  {generatedEmail}
-                </pre>
-                <Button
-                  onClick={() => navigator.clipboard.writeText(generatedEmail)}
-                  className="font-medium w-full sm:w-auto"
-                >
-                  Copy Email
-                </Button>
-              </Card>
-            )}
-            {/* History */}
-            {history.length > 0 && (
-              <Card className="bg-card/90 rounded-xl shadow-lg border border-border/30 p-6 space-y-4">
-                <div className="flex items-center gap-2 mb-4">
-                  <Clock className="text-primary" size={20} />
-                  <h3 className="font-semibold text-lg">History</h3>
-                </div>
-                <ul className="space-y-3">
-                  {history.map((item, idx) => (
-                    <li
-                      key={idx}
-                      onClick={() => handleSelectHistory(item)}
-                      className="p-3 bg-muted/30 rounded-lg hover:bg-primary/10 transition-colors cursor-pointer"
-                    >
-                      <p className="text-sm font-medium truncate">{item.url}</p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {item.timestamp}
-                      </p>
-                    </li>
-                  ))}
-                </ul>
-              </Card>
-            )}
-            {/* Empty State */}
-            {!profileData && !generatedEmail && history.length === 0 && (
-              <div className="flex flex-col items-center justify-center h-full text-center p-8">
-                <Sparkles className="w-16 h-16 text-primary/30 mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Start Creating</h3>
-                <p className="text-muted-foreground">
-                  Enter a LinkedIn URL to begin crafting personalized emails
-                </p>
-              </div>
-            )}
+          <div className="flex-1 overflow-y-auto p-8">
+            <EmailSummary
+              profileData={profileData}
+              generatedEmail={generatedEmail}
+              history={history}
+              onSelectHistory={handleSelectHistory}
+            />
           </div>
         </div>
         <EmailPreferenceDialog
