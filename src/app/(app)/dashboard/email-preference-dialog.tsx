@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { X, Plus } from "lucide-react";
+import { useForm, useFieldArray } from "react-hook-form";
 
 interface KeyFeature {
   feature_name: string;
@@ -31,70 +32,86 @@ interface EmailPreferenceData {
 export function EmailPreferenceDialog({
   open,
   onClose,
-  onSubmit,
-  initialData,
 }: {
   open: boolean;
   onClose: () => void;
-  onSubmit: (data: EmailPreferenceData) => void;
-  initialData?: Partial<EmailPreferenceData>;
 }) {
-  const [form, setForm] = useState<EmailPreferenceData>({
-    email: initialData?.email || "",
-    product_name: initialData?.product_name || "",
-    product_description: initialData?.product_description || "",
-    key_features: initialData?.key_features || [
-      { feature_name: "", benefit: "" },
-    ],
-    usp: initialData?.usp || "",
-    cta: initialData?.cta || "",
-    sellerName: initialData?.sellerName || "",
-    sellerTitle: initialData?.sellerTitle || "",
+  const {
+    register,
+    control,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<EmailPreferenceData>({
+    defaultValues: {
+      email: "",
+      product_name: "",
+      product_description: "",
+      key_features: [{ feature_name: "", benefit: "" }],
+      usp: "",
+      cta: "",
+      sellerName: "",
+      sellerTitle: "",
+    },
   });
 
-  const handleFeatureChange = (
-    idx: number,
-    field: keyof KeyFeature,
-    value: string
-  ) => {
-    setForm((prev) => {
-      const features = [...prev.key_features];
-      features[idx] = { ...features[idx], [field]: value };
-      return { ...prev, key_features: features };
-    });
-  };
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "key_features",
+  });
 
-  const addFeature = () => {
-    setForm((prev) => ({
-      ...prev,
-      key_features: [...prev.key_features, { feature_name: "", benefit: "" }],
-    }));
-  };
-
-  const removeFeature = (idx: number) => {
-    setForm((prev) => ({
-      ...prev,
-      key_features: prev.key_features.filter((_, i) => i !== idx),
-    }));
-  };
-
-  const handleChange = (field: keyof EmailPreferenceData, value: string) => {
-    setForm((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Store all preferences in localStorage
-    if (typeof window !== "undefined") {
-      localStorage.setItem("emailPreference", JSON.stringify(form));
+  // Load preferences from localStorage on open
+  useEffect(() => {
+    if (open && typeof window !== "undefined") {
+      const pref = localStorage.getItem("emailPreference");
+      if (pref) {
+        try {
+          const parsed = JSON.parse(pref);
+          reset({
+            email: parsed.email || "",
+            product_name: parsed.product_name || "",
+            product_description: parsed.product_description || "",
+            key_features:
+              parsed.key_features &&
+              Array.isArray(parsed.key_features) &&
+              parsed.key_features.length > 0
+                ? parsed.key_features
+                : [{ feature_name: "", benefit: "" }],
+            usp: parsed.usp || "",
+            cta: parsed.cta || "",
+            sellerName: parsed.sellerName || "",
+            sellerTitle: parsed.sellerTitle || "",
+          });
+        } catch {
+          reset();
+        }
+      } else {
+        reset();
+      }
     }
-    onSubmit(form);
+  }, [open, reset]);
+
+  const onSubmit = (data: EmailPreferenceData) => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("emailPreference", JSON.stringify(data));
+    }
+    onClose();
   };
 
   return (
-    <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[95vw] max-h-[90vh] p-0 flex flex-col">
-        <div className="flex flex-col h-full min-h-[60vh] max-h-[90vh]">
+    <Dialog open={open} onOpenChange={onClose} modal={true}>
+      <DialogContent
+        className="sm:max-w-[95vw] max-h-[90vh] p-0 flex flex-col"
+        onInteractOutside={(e) => {
+          if (e.type === "pointerdown") {
+            e.preventDefault();
+          }
+        }}
+      >
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="flex flex-col h-full min-h-[60vh] max-h-[90vh]"
+        >
           <DialogHeader className="px-6 py-4 border-b">
             <DialogTitle className="text-xl">Email Preferences</DialogTitle>
           </DialogHeader>
@@ -113,10 +130,8 @@ export function EmailPreferenceDialog({
                       Email Address
                     </label>
                     <Input
-                      value={form.email}
-                      onChange={(e) => handleChange("email", e.target.value)}
+                      {...register("email", { required: true })}
                       placeholder="your@email.com"
-                      required
                       type="email"
                       className="h-10"
                     />
@@ -128,12 +143,8 @@ export function EmailPreferenceDialog({
                         Your Name
                       </label>
                       <Input
-                        value={form.sellerName}
-                        onChange={(e) =>
-                          handleChange("sellerName", e.target.value)
-                        }
+                        {...register("sellerName", { required: true })}
                         placeholder="John Doe"
-                        required
                         className="h-10"
                       />
                     </div>
@@ -142,12 +153,8 @@ export function EmailPreferenceDialog({
                         Your Title
                       </label>
                       <Input
-                        value={form.sellerTitle}
-                        onChange={(e) =>
-                          handleChange("sellerTitle", e.target.value)
-                        }
+                        {...register("sellerTitle", { required: true })}
                         placeholder="Sales Manager"
-                        required
                         className="h-10"
                       />
                     </div>
@@ -164,12 +171,8 @@ export function EmailPreferenceDialog({
                       Product Name
                     </label>
                     <Input
-                      value={form.product_name}
-                      onChange={(e) =>
-                        handleChange("product_name", e.target.value)
-                      }
+                      {...register("product_name", { required: true })}
                       placeholder="Your amazing product"
-                      required
                       className="h-10"
                     />
                   </div>
@@ -179,12 +182,8 @@ export function EmailPreferenceDialog({
                       Product Description
                     </label>
                     <Textarea
-                      value={form.product_description}
-                      onChange={(e) =>
-                        handleChange("product_description", e.target.value)
-                      }
+                      {...register("product_description", { required: true })}
                       placeholder="Brief description of what your product does..."
-                      required
                       rows={3}
                       className="resize-none"
                     />
@@ -195,10 +194,8 @@ export function EmailPreferenceDialog({
                       Unique Selling Proposition
                     </label>
                     <Textarea
-                      value={form.usp}
-                      onChange={(e) => handleChange("usp", e.target.value)}
+                      {...register("usp", { required: true })}
                       placeholder="What makes your product unique and different..."
-                      required
                       rows={3}
                       className="resize-none"
                     />
@@ -209,10 +206,8 @@ export function EmailPreferenceDialog({
                       Call to Action
                     </label>
                     <Input
-                      value={form.cta}
-                      onChange={(e) => handleChange("cta", e.target.value)}
+                      {...register("cta", { required: true })}
                       placeholder="e.g., Schedule a demo, Start free trial"
-                      required
                       className="h-10"
                     />
                   </div>
@@ -229,7 +224,7 @@ export function EmailPreferenceDialog({
                     type="button"
                     variant="outline"
                     size="sm"
-                    onClick={addFeature}
+                    onClick={() => append({ feature_name: "", benefit: "" })}
                     className="h-8"
                   >
                     <Plus className="w-4 h-4 mr-1" />
@@ -238,15 +233,15 @@ export function EmailPreferenceDialog({
                 </div>
 
                 <div className="space-y-3">
-                  {form.key_features.map((feature, idx) => (
+                  {fields.map((field, idx) => (
                     <div
-                      key={idx}
+                      key={field.id}
                       className="relative border rounded-lg p-4 bg-muted/20 hover:bg-muted/30 transition-colors"
                     >
-                      {form.key_features.length > 1 && (
+                      {fields.length > 1 && (
                         <button
                           type="button"
-                          onClick={() => removeFeature(idx)}
+                          onClick={() => remove(idx)}
                           className="absolute top-3 right-3 text-muted-foreground hover:text-destructive transition-colors"
                         >
                           <X className="w-4 h-4" />
@@ -258,16 +253,10 @@ export function EmailPreferenceDialog({
                             Feature Name
                           </label>
                           <Input
-                            value={feature.feature_name}
-                            onChange={(e) =>
-                              handleFeatureChange(
-                                idx,
-                                "feature_name",
-                                e.target.value
-                              )
-                            }
+                            {...register(`key_features.${idx}.feature_name`, {
+                              required: true,
+                            })}
                             placeholder="e.g., Real-time Analytics"
-                            required
                             className="h-9"
                           />
                         </div>
@@ -276,16 +265,10 @@ export function EmailPreferenceDialog({
                             Benefit
                           </label>
                           <Textarea
-                            value={feature.benefit}
-                            onChange={(e) =>
-                              handleFeatureChange(
-                                idx,
-                                "benefit",
-                                e.target.value
-                              )
-                            }
+                            {...register(`key_features.${idx}.benefit`, {
+                              required: true,
+                            })}
                             placeholder="How does this feature help customers?"
-                            required
                             rows={2}
                             className="resize-none"
                           />
@@ -308,12 +291,12 @@ export function EmailPreferenceDialog({
               >
                 Cancel
               </Button>
-              <Button type="submit" onClick={handleSubmit} className="w-24">
+              <Button type="submit" className="w-24">
                 Save
               </Button>
             </div>
           </DialogFooter>
-        </div>
+        </form>
       </DialogContent>
     </Dialog>
   );

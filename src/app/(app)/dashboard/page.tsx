@@ -53,7 +53,7 @@ export default function DashboardPage() {
   const [showEmailPref, setShowEmailPref] = useState(false);
   const [hasEmailPref, setHasEmailPref] = useState<boolean>(false);
 
-  // Check for email preferences in localStorage on mount
+  // Only check if preferences exist in localStorage
   useEffect(() => {
     if (typeof window !== "undefined") {
       const pref = localStorage.getItem("emailPreference");
@@ -120,15 +120,6 @@ AlignMail Team`;
     setProfileData({ posts: item.posts });
     setGeneratedEmail(item.email);
     setCurrentStep(4);
-  };
-
-  const handleEmailPrefSubmit = (data: any) => {
-    // Store email preferences in localStorage
-    if (typeof window !== "undefined") {
-      localStorage.setItem("emailPreference", JSON.stringify(data));
-      setHasEmailPref(true);
-    }
-    setShowEmailPref(false);
   };
 
   return (
@@ -419,8 +410,14 @@ AlignMail Team`;
         </div>
         <EmailPreferenceDialog
           open={showEmailPref}
-          onClose={() => setShowEmailPref(false)}
-          onSubmit={handleEmailPrefSubmit}
+          onClose={() => {
+            setShowEmailPref(false);
+            // Re-check if preferences exist after dialog closes
+            if (typeof window !== "undefined") {
+              const pref = localStorage.getItem("emailPreference");
+              setHasEmailPref(!!pref);
+            }
+          }}
         />
       </main>
     </div>
