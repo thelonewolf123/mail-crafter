@@ -23,8 +23,8 @@ function LandingPage() {
             </div>
             <div className="flex -ml-2">
               <span className="text-left text-1xl font-bold text-foreground flex flex-col">
-                Align
-                <span className="text-primary text-2xl -mt-2">Mail</span>
+                Mail
+                <span className="text-primary text-2xl -mt-2">Crafter</span>
               </span>
             </div>
           </Link>
@@ -67,11 +67,12 @@ function LandingPage() {
         </div>
         <div className="relative z-10 flex flex-col items-center justify-center w-full max-w-3xl px-2 sm:px-4 text-center">
           <h1 className="text-3xl sm:text-5xl md:text-7xl font-bold mb-6 leading-tight">
-            Better Emails. Better Replies.
+            Emails That Actually Get Replies
           </h1>
           <p className="text-base sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed">
-            Craft outreach that aligns with your prospects’ interests and drives
-            measurable engagement.
+            Craft personalized emails that speak directly to your prospect's
+            pain points, goals, and interests—turning cold leads into qualified
+            meetings.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button

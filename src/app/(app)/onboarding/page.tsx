@@ -95,7 +95,7 @@ function OnboardingPage() {
       isValid: !!form.name.trim() && !!form.role,
     },
     {
-      label: "What brings you to AlignMail?",
+      label: "What brings you to MailCrafter?",
       content: (
         <div className="space-y-6">
           <div>

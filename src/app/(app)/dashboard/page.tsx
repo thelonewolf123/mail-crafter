@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { EmailPreferenceDialog } from "./email-preference-dialog";
 import { EmailSummary } from "./email-summary";
 
@@ -38,7 +38,7 @@ function Topbar() {
     <header className="w-full px-6 py-4 border-b border-border/30 bg-background/80 backdrop-blur-md flex items-center justify-between">
       <div className="flex items-center gap-2">
         <Sparkles className="text-primary" size={28} />
-        <span className="font-bold text-xl text-foreground">AlignMail</span>
+        <span className="font-bold text-xl text-foreground">MailCrafter</span>
       </div>
     </header>
   );
@@ -93,7 +93,7 @@ I came across your LinkedIn profile and was impressed by your recent work on AI-
 I'd love to connect and explore how we can collaborate or add value to each other's networks.
 
 Best regards,
-AlignMail Team`;
+MailCrafter Team`;
 
       setGeneratedEmail(mockEmail);
       setIsLoading(false);
