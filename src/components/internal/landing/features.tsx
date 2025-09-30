@@ -1,5 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Shield, Users } from "lucide-react";
+import Image from "next/image";
 
 export function Features() {
   return (
@@ -212,7 +213,8 @@ export function Features() {
                     </h2>
                     <p className="text-muted-foreground">
                       Stand out in crowded inboxes with emails that speak
-                      directly to your prospect's needs, boosting engagement.
+                      directly to your prospect&apos;s needs, boosting
+                      engagement.
                     </p>
                   </div>
                 </div>
@@ -286,19 +288,23 @@ export function Features() {
                         Likeur
                       </span>
                       <div className="ring-background size-7 ring-4">
-                        <img
+                        <Image
+                          width={32}
+                          height={32}
                           className="size-full rounded-full"
                           src="https://avatars.githubusercontent.com/u/102558960?v=4"
-                          alt=""
+                          alt="image1"
                         />
                       </div>
                     </div>
                     <div className="relative ml-[calc(50%-1rem)] flex items-center gap-2">
                       <div className="ring-background size-8 ring-4">
-                        <img
+                        <Image
+                          width={32}
+                          height={32}
                           className="size-full rounded-full"
                           src="https://avatars.githubusercontent.com/u/47919550?v=4"
-                          alt=""
+                          alt="image2"
                         />
                       </div>
                       <span className="block h-fit rounded border px-2 py-1 text-xs shadow-sm">
@@ -310,10 +316,12 @@ export function Features() {
                         B. Ng
                       </span>
                       <div className="ring-background size-7 ring-4">
-                        <img
+                        <Image
+                          width={32}
+                          height={32}
                           className="size-full rounded-full"
                           src="https://avatars.githubusercontent.com/u/31113941?v=4"
-                          alt=""
+                          alt="image3"
                         />
                       </div>
                     </div>

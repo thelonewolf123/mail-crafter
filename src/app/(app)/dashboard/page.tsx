@@ -2,12 +2,9 @@
 import { useEffect, useState } from "react";
 import {
   Sparkles,
-  Mail,
-  FileText,
   Loader2,
   Check,
   ArrowRight,
-  Clock,
   Plus,
   Pencil,
 } from "lucide-react";
@@ -18,6 +15,7 @@ import { EmailPreferenceDialog } from "./email-preference-dialog";
 import { EmailSummary } from "./email-summary";
 import useLocalStorage, { User } from "@/hooks/use-localstorage";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 // Types
 interface Post {
@@ -59,10 +57,7 @@ export default function DashboardPage() {
     name: "Guest",
     try: 1,
   });
-  const router =
-    typeof window !== "undefined"
-      ? require("next/navigation").useRouter()
-      : null;
+  const router = useRouter();
 
   // Remove redirect on mount
   // Only check if preferences exist in user object
@@ -76,7 +71,7 @@ export default function DashboardPage() {
     if (user?.try === 1) {
       toast.warning("Finish Onboarding to Try More...");
       setTimeout(() => {
-        if (router) router.push("/onboarding");
+        router.push("/onboarding");
       }, 1500);
       return;
     }

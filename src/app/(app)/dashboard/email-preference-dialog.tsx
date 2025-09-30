@@ -12,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { X, Plus } from "lucide-react";
 import { useForm, useFieldArray } from "react-hook-form";
-import useLocalStorage from "@/hooks/use-localstorage";
+import useLocalStorage, { User } from "@/hooks/use-localstorage";
 
 interface KeyFeature {
   feature_name: string;
@@ -40,29 +40,24 @@ export function EmailPreferenceDialog({
   onSaved?: () => void; // new prop
 }) {
   // Use localStorage hook for user
-  const [user, setUser] = useLocalStorage<any>("user", {
+  const [user, setUser] = useLocalStorage<User>("user", {
     name: "Guest",
     try: 1,
   });
 
-  const {
-    register,
-    control,
-    handleSubmit,
-    reset,
-    formState: { errors },
-  } = useForm<EmailPreferenceData>({
-    defaultValues: {
-      email: "",
-      product_name: "",
-      product_description: "",
-      key_features: [{ feature_name: "", benefit: "" }],
-      usp: "",
-      cta: "",
-      sellerName: "",
-      sellerTitle: "",
-    },
-  });
+  const { register, control, handleSubmit, reset } =
+    useForm<EmailPreferenceData>({
+      defaultValues: {
+        email: "",
+        product_name: "",
+        product_description: "",
+        key_features: [{ feature_name: "", benefit: "" }],
+        usp: "",
+        cta: "",
+        sellerName: "",
+        sellerTitle: "",
+      },
+    });
 
   const { fields, append, remove } = useFieldArray({
     control,

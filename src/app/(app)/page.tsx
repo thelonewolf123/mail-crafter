@@ -89,9 +89,9 @@ function LandingPage() {
             Emails That Actually Get Replies
           </h1>
           <p className="text-base sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed">
-            Craft personalized emails that speak directly to your prospect's
-            pain points, goals, and interests. turning cold leads into qualified
-            meetings.
+            Craft personalized emails that speak directly to your
+            prospect&apos;s pain points, goals, and interests. turning cold
+            leads into qualified meetings.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button

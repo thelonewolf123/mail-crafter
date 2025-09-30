@@ -1,6 +1,6 @@
 "use client";
-import { useState } from "react";
-import { Sparkles, Mail, Linkedin, Calendar, ArrowRight } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Sparkles, Mail, Linkedin, Calendar } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,13 @@ export default function ContactPage() {
   const [form, setForm] = useState({ name: "", email: "", message: "" });
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [calendlyRoot, setCalendlyRoot] = useState<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setCalendlyRoot(document.getElementById("__next") || document.body);
+    }
+  }, []);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -68,14 +75,14 @@ export default function ContactPage() {
 
             <div className="w-full max-w-sm space-y-4">
               <Button size="lg" className="w-full text-lg font-bold shadow-lg ">
-                <PopupButton
-                  url="https://calendly.com/himal9626"
-                  rootElement={
-                    document.getElementById("__next") || document.body
-                  }
-                  text="Schedule Your Meeting"
-                  className="w-full"
-                />
+                {calendlyRoot && (
+                  <PopupButton
+                    url="https://calendly.com/himal9626"
+                    rootElement={calendlyRoot}
+                    text="Schedule Your Meeting"
+                    className="w-full"
+                  />
+                )}
               </Button>
 
               <p className="text-xs text-muted-foreground">
