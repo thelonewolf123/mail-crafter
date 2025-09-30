@@ -16,6 +16,8 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { EmailPreferenceDialog } from "./email-preference-dialog";
 import { EmailSummary } from "./email-summary";
+import useLocalStorage, { User } from "@/hooks/use-localstorage";
+import { toast } from "sonner";
 
 // Types
 interface Post {
@@ -53,18 +55,32 @@ export default function DashboardPage() {
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [showEmailPref, setShowEmailPref] = useState(false);
   const [hasEmailPref, setHasEmailPref] = useState<boolean>(false);
+  const [user, setUser] = useLocalStorage<User>("user", {
+    name: "Guest",
+    try: 1,
+  });
+  const router =
+    typeof window !== "undefined"
+      ? require("next/navigation").useRouter()
+      : null;
 
-  // Only check if preferences exist in localStorage
+  // Remove redirect on mount
+  // Only check if preferences exist in user object
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const pref = localStorage.getItem("emailPreference");
-      setHasEmailPref(!!pref);
-    }
-  }, []);
+    setHasEmailPref(!!user?.emailPreference);
+  }, [user]);
 
   const handleUrlSubmit = () => {
     if (!url) return;
-
+    // If user has already tried once, show toast and redirect
+    if (user?.try === 1) {
+      toast.warning("Finish Onboarding to Try More...");
+      setTimeout(() => {
+        if (router) router.push("/onboarding");
+      }, 1500);
+      return;
+    }
+    // Increment try count
     setIsLoading(true);
     setCurrentStep(1);
 
@@ -79,6 +95,7 @@ export default function DashboardPage() {
       setIsLoading(false);
       setCurrentStep(2);
     }, 2000);
+    setUser({ ...user, try: (user?.try || 0) + 1 });
   };
 
   const handleGenerateEmail = () => {
@@ -357,11 +374,9 @@ MailCrafter Team`;
           open={showEmailPref}
           onClose={() => {
             setShowEmailPref(false);
-            // Re-check if preferences exist after dialog closes
-            if (typeof window !== "undefined") {
-              const pref = localStorage.getItem("emailPreference");
-              setHasEmailPref(!!pref);
-            }
+          }}
+          onSaved={() => {
+            setHasEmailPref(true);
           }}
         />
       </main>

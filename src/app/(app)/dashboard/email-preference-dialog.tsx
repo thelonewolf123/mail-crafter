@@ -12,13 +12,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { X, Plus } from "lucide-react";
 import { useForm, useFieldArray } from "react-hook-form";
+import useLocalStorage from "@/hooks/use-localstorage";
 
 interface KeyFeature {
   feature_name: string;
   benefit: string;
 }
 
-interface EmailPreferenceData {
+export interface EmailPreferenceData {
   email: string;
   product_name: string;
   product_description: string;
@@ -32,10 +33,18 @@ interface EmailPreferenceData {
 export function EmailPreferenceDialog({
   open,
   onClose,
+  onSaved, // new prop
 }: {
   open: boolean;
   onClose: () => void;
+  onSaved?: () => void; // new prop
 }) {
+  // Use localStorage hook for user
+  const [user, setUser] = useLocalStorage<any>("user", {
+    name: "Guest",
+    try: 1,
+  });
+
   const {
     register,
     control,
@@ -60,42 +69,35 @@ export function EmailPreferenceDialog({
     name: "key_features",
   });
 
-  // Load preferences from localStorage on open
+  // Load preferences from user object in localStorage on open
   useEffect(() => {
-    if (open && typeof window !== "undefined") {
-      const pref = localStorage.getItem("emailPreference");
-      if (pref) {
-        try {
-          const parsed = JSON.parse(pref);
-          reset({
-            email: parsed.email || "",
-            product_name: parsed.product_name || "",
-            product_description: parsed.product_description || "",
-            key_features:
-              parsed.key_features &&
-              Array.isArray(parsed.key_features) &&
-              parsed.key_features.length > 0
-                ? parsed.key_features
-                : [{ feature_name: "", benefit: "" }],
-            usp: parsed.usp || "",
-            cta: parsed.cta || "",
-            sellerName: parsed.sellerName || "",
-            sellerTitle: parsed.sellerTitle || "",
-          });
-        } catch {
-          reset();
-        }
-      } else {
-        reset();
-      }
+    if (open && user?.emailPreference) {
+      const parsed = user.emailPreference;
+      reset({
+        email: parsed.email || "",
+        product_name: parsed.product_name || "",
+        product_description: parsed.product_description || "",
+        key_features:
+          parsed.key_features &&
+          Array.isArray(parsed.key_features) &&
+          parsed.key_features.length > 0
+            ? parsed.key_features
+            : [{ feature_name: "", benefit: "" }],
+        usp: parsed.usp || "",
+        cta: parsed.cta || "",
+        sellerName: parsed.sellerName || "",
+        sellerTitle: parsed.sellerTitle || "",
+      });
+    } else if (open) {
+      reset();
     }
-  }, [open, reset]);
+  }, [open, reset, user]);
 
   const onSubmit = (data: EmailPreferenceData) => {
-    if (typeof window !== "undefined") {
-      localStorage.setItem("emailPreference", JSON.stringify(data));
-    }
+    // Save preferences inside user object in localStorage
+    setUser({ ...user, emailPreference: data });
     onClose();
+    if (onSaved) onSaved(); // call onSaved after saving
   };
 
   return (

@@ -11,8 +11,26 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Features } from "@/components/internal/landing/features";
+import useLocalStorage, { User } from "@/hooks/use-localstorage";
+import { useRouter } from "next/navigation";
 
 function LandingPage() {
+  const [user, setUser] = useLocalStorage<User>("user", {
+    name: "Guest",
+    try: 0,
+  });
+  const router = useRouter();
+
+  // Modular handler for Try Now Free
+  const handleTryNowFree = () => {
+    if (!user || user.try === 0) {
+      setUser({ name: user?.name || "Guest", try: 0 });
+      router.push("/dashboard");
+    } else {
+      router.push("/onboarding");
+    }
+  };
+
   return (
     <div className="bg-background text-foreground font-sans min-h-screen flex flex-col p-2 sm:p-4">
       {/* Header */}
@@ -77,14 +95,12 @@ function LandingPage() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button
-              asChild
               size="lg"
               aria-label="Try Now Free"
               className="inline-flex items-center justify-center px-8 py-4 font-bold rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all"
+              onClick={handleTryNowFree}
             >
-              <Link href="/onboarding">
-                Try Now Free <ArrowRight className="ml-2" size={20} />
-              </Link>
+              Try Now Free <ArrowRight className="ml-2" size={20} />
             </Button>
             <Button
               asChild
