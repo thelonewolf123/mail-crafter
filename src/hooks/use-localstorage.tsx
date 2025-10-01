@@ -1,4 +1,5 @@
 import { EmailPreferenceData } from "@/app/(app)/dashboard/email-preference-dialog";
+import { OnboardingTypes } from "@/app/(app)/onboarding/page";
 import { useState, useEffect } from "react";
 
 function useLocalStorage<T extends object | string | number | boolean>(
@@ -63,4 +64,5 @@ export type User = {
   name: string;
   try: number;
   emailPreference?: EmailPreferenceData;
+  onboarding?: OnboardingTypes;
 };

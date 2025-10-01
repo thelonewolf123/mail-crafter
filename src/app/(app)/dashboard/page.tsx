@@ -16,6 +16,7 @@ import { EmailSummary } from "./email-summary";
 import useLocalStorage, { User } from "@/hooks/use-localstorage";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { LinkdinScrapper } from "@/server/actions";
 
 // Types
 interface Post {
@@ -65,20 +66,37 @@ export default function DashboardPage() {
     setHasEmailPref(!!user?.emailPreference);
   }, [user]);
 
-  const handleUrlSubmit = () => {
+  const handleUrlSubmit = async () => {
     if (!url) return;
-    // If user has already tried once, show toast and redirect
-    if (user?.try === 1) {
-      toast.warning("Finish Onboarding to Try More...");
-      setTimeout(() => {
-        router.push("/onboarding");
-      }, 1500);
+
+    // Updated onboarding/quota logic
+    if ((user?.try || 0) < 1) {
+      // First try, allow usage
+    } else if ((user?.try || 0) === 1) {
+      // Second try, check onboarding
+      if (!user?.onboarding?.completed) {
+        toast.warning("Please complete onboarding first.");
+        setTimeout(() => {
+          router.push("/onboarding");
+        }, 1500);
+        return;
+      }
+    } else if ((user?.try || 0) >= 3) {
+      toast.warning("you reached free 3 quota...");
       return;
     }
-    // Increment try count
+    // Increment try count only if allowed to proceed
+    setUser({ ...user, try: (user?.try || 0) + 1 });
     setIsLoading(true);
     setCurrentStep(1);
 
+    const res = await LinkdinScrapper(url);
+    if (!res.success) {
+      toast.error(res.data);
+    } else {
+      console.log(res);
+      router.push("/dashboard");
+    }
     setTimeout(() => {
       const mockPosts = [
         { title: "How AI is transforming B2B outreach in 2024" },
@@ -90,7 +108,6 @@ export default function DashboardPage() {
       setIsLoading(false);
       setCurrentStep(2);
     }, 2000);
-    setUser({ ...user, try: (user?.try || 0) + 1 });
   };
 
   const handleGenerateEmail = () => {

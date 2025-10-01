@@ -13,6 +13,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Features } from "@/components/internal/landing/features";
 import useLocalStorage, { User } from "@/hooks/use-localstorage";
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { PopupButton } from "react-calendly";
 
 function LandingPage() {
   const [user, setUser] = useLocalStorage<User>("user", {
@@ -21,6 +23,13 @@ function LandingPage() {
   });
   const router = useRouter();
 
+  const [calendlyRoot, setCalendlyRoot] = useState<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setCalendlyRoot(document.getElementById("__next") || document.body);
+    }
+  }, []);
   // Modular handler for Try Now Free
   const handleTryNowFree = () => {
     if (!user || user.try === 0) {
@@ -102,14 +111,15 @@ function LandingPage() {
             >
               Try Now Free <ArrowRight className="ml-2" size={20} />
             </Button>
-            <Button
-              asChild
-              size="lg"
-              variant="outline"
-              aria-label="Get in Touch"
-              className="inline-flex items-center justify-center px-8 py-4 font-bold rounded-full border-2 border-primary text-primary hover:bg-primary/10 transition-all"
-            >
-              <Link href="/contact">Get in Touch</Link>
+            <Button size="lg" variant={"outline"} className="rounded-full">
+              {calendlyRoot && (
+                <PopupButton
+                  url="https://calendly.com/himal9626"
+                  rootElement={calendlyRoot}
+                  text="Schedule Your Meeting"
+                  className="w-full"
+                />
+              )}
             </Button>
           </div>
 

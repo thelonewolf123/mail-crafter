@@ -6,10 +6,26 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
+import { OnboardingData } from "@/server/actions";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import useLocalStorage, { User } from "@/hooks/use-localstorage";
 
+export type OnboardingTypes = {
+  name: string;
+  role: string;
+  goal: string;
+  emailsPerWeek: string;
+  completed?: boolean;
+};
 function OnboardingPage() {
   const [step, setStep] = useState(0);
   const [transitioning, setTransitioning] = useState(false);
+  const router = useRouter();
+  const [user, setUser] = useLocalStorage<User>("user", {
+    name: "Guest",
+    try: 1,
+  });
 
   const {
     register,
@@ -25,6 +41,26 @@ function OnboardingPage() {
     },
     mode: "onChange",
   });
+
+  const handleSubmit = async () => {
+    const res = await OnboardingData(form);
+    // if (!res.success) {
+    //   toast.error(res.data);
+    // } else {
+    setUser({
+      ...user,
+      onboarding: {
+        name: form.name,
+        role: form.role,
+        goal: form.goal,
+        emailsPerWeek: form.emailsPerWeek,
+        completed: true,
+      },
+    });
+    console.log(res);
+    router.push("/dashboard");
+    // }
+  };
 
   const form = watch();
 
@@ -265,15 +301,14 @@ function OnboardingPage() {
                     Back
                   </Button>
                   {isLastStep ? (
-                    <Link href={"/dashboard"}>
-                      <Button
-                        size="lg"
-                        className="px-8 font-bold rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all min-w-[120px]"
-                        disabled={!steps[step].isValid || transitioning}
-                      >
-                        Get Started <ArrowRight className="ml-2" size={20} />
-                      </Button>
-                    </Link>
+                    <Button
+                      onClick={handleSubmit}
+                      size="lg"
+                      className="px-8 font-bold rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all min-w-[120px]"
+                      disabled={!steps[step].isValid || transitioning}
+                    >
+                      Get Started <ArrowRight className="ml-2" size={20} />
+                    </Button>
                   ) : (
                     <Button
                       size="lg"

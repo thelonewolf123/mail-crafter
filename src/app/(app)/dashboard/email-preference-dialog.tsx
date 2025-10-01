@@ -96,13 +96,17 @@ export function EmailPreferenceDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onClose} modal={true}>
+    <Dialog open={open} modal={true}>
       <DialogContent
         className="sm:max-w-[95vw] max-h-[90vh] p-0 flex flex-col"
+        showCloseButton={false}
         onInteractOutside={(e) => {
           if (e.type === "pointerdown") {
             e.preventDefault();
           }
+        }}
+        onEscapeKeyDown={(e) => {
+          e.preventDefault();
         }}
       >
         <form
