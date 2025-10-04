@@ -16,11 +16,20 @@ import { EmailSummary } from "./email-summary";
 import useLocalStorage, { User } from "@/hooks/use-localstorage";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { LinkdinScrapper } from "@/server/actions";
+import { ServerGenerateEmail, ServerLinkdinScrapper } from "@/server/actions";
 
 // Types
 interface Post {
-  title: string;
+  text: string;
+  author: string;
+  posted_at: string;
+}
+
+// Raw API response type
+interface RawPost {
+  text: string;
+  posted_at: { date: string };
+  author: { first_name: string; last_name: string };
 }
 
 interface ProfileData {
@@ -56,7 +65,7 @@ export default function DashboardPage() {
   const [hasEmailPref, setHasEmailPref] = useState<boolean>(false);
   const [user, setUser] = useLocalStorage<User>("user", {
     name: "Guest",
-    try: 1,
+    try: 0,
   });
   const router = useRouter();
 
@@ -64,13 +73,29 @@ export default function DashboardPage() {
   // Only check if preferences exist in user object
   useEffect(() => {
     setHasEmailPref(!!user?.emailPreference);
-  }, [user]);
+    // Check for LinkedIn URL in query params
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const urlParam = params.get("linkedinUrl");
+      console.log(urlParam);
 
-  const handleUrlSubmit = async () => {
-    if (!url) return;
+      if (urlParam && urlParam.includes("linkedin")) {
+        setUrl(urlParam);
 
-    // Updated onboarding/quota logic
-    if ((user?.try || 0) < 1) {
+        setTimeout(() => {
+          handleUrlSubmit(urlParam);
+        }, 100); // slight delay to ensure state update
+      }
+    }
+  }, []);
+
+  async function handleUrlSubmit(submitUrl?: string) {
+    const urlToUse = submitUrl ?? url;
+    if (!urlToUse) return;
+    console.log("whaat");
+
+    // Allow first try without onboarding/quota
+    if ((user?.try || 0) === 0) {
       // First try, allow usage
     } else if ((user?.try || 0) === 1) {
       // Second try, check onboarding
@@ -87,55 +112,46 @@ export default function DashboardPage() {
     }
     // Increment try count only if allowed to proceed
     setUser({ ...user, try: (user?.try || 0) + 1 });
-    setIsLoading(true);
-    setCurrentStep(1);
 
-    const res = await LinkdinScrapper(url);
+    setIsLoading(true);
+
+    const res = await ServerLinkdinScrapper(urlToUse);
     if (!res.success) {
       toast.error(res.data);
-    } else {
-      console.log(res);
-      router.push("/dashboard");
+      return;
     }
-    setTimeout(() => {
-      const mockPosts = [
-        { title: "How AI is transforming B2B outreach in 2024" },
-        { title: "5 tips for writing cold emails that get replies" },
-        { title: "Celebrating 1,000+ connections!" },
-        { title: "Excited to announce our new product launch" },
-      ];
-      setProfileData({ posts: mockPosts });
-      setIsLoading(false);
-      setCurrentStep(2);
-    }, 2000);
-  };
+    const results = res.data.map((post: RawPost) => ({
+      text: post.text,
+      author: post.author.first_name + " " + post.author.last_name,
+      posted_at: post.posted_at.date,
+    }));
+    setProfileData({ posts: results });
 
-  const handleGenerateEmail = () => {
+    setCurrentStep(1);
+    setIsLoading(false);
+    setCurrentStep(2);
+  }
+
+  const handleGenerateEmail = async () => {
     setIsLoading(true);
     setCurrentStep(3);
 
-    setTimeout(() => {
-      const mockEmail = `Hi there,
+    const response = await ServerGenerateEmail(user.emailPreference);
+    if (!response.success) {
+      toast.error(response.data);
+      return;
+    }
+    setGeneratedEmail(response.data);
+    setIsLoading(false);
+    setCurrentStep(4);
 
-I came across your LinkedIn profile and was impressed by your recent work on AI-driven B2B outreach strategies. Your insights on cold email best practices really resonated with me.
-
-I'd love to connect and explore how we can collaborate or add value to each other's networks.
-
-Best regards,
-MailCrafter Team`;
-
-      setGeneratedEmail(mockEmail);
-      setIsLoading(false);
-      setCurrentStep(4);
-
-      const newHistoryItem = {
-        url,
-        email: mockEmail,
-        posts: profileData?.posts || [],
-        timestamp: new Date().toLocaleString(),
-      };
-      setHistory((prev) => [newHistoryItem, ...prev]);
-    }, 1500);
+    const newHistoryItem = {
+      url,
+      email: response.data,
+      posts: profileData?.posts || [],
+      timestamp: new Date().toLocaleString(),
+    };
+    setHistory((prev) => [newHistoryItem, ...prev]);
   };
 
   const handleReset = () => {
@@ -199,7 +215,7 @@ MailCrafter Team`;
                       />
                       {currentStep === 0 && (
                         <Button
-                          onClick={handleUrlSubmit}
+                          onClick={() => handleUrlSubmit()}
                           disabled={!url}
                           className="w-full sm:w-auto"
                         >

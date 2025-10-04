@@ -13,6 +13,8 @@ import { Button } from "@/components/ui/button";
 import { X, Plus } from "lucide-react";
 import { useForm, useFieldArray } from "react-hook-form";
 import useLocalStorage, { User } from "@/hooks/use-localstorage";
+import { ServerEmailPreference } from "@/server/actions";
+import { toast } from "sonner";
 
 interface KeyFeature {
   feature_name: string;
@@ -88,8 +90,12 @@ export function EmailPreferenceDialog({
     }
   }, [open, reset, user]);
 
-  const onSubmit = (data: EmailPreferenceData) => {
-    // Save preferences inside user object in localStorage
+  const onSubmit = async (data: EmailPreferenceData) => {
+    const response = await ServerEmailPreference(data);
+    if (!response.success) {
+      toast.warning(response.data);
+      return;
+    }
     setUser({ ...user, emailPreference: data });
     onClose();
     if (onSaved) onSaved(); // call onSaved after saving

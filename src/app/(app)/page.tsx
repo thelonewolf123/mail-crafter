@@ -6,15 +6,18 @@ import {
   Sparkles,
   UserCheck,
   Trophy,
+  FastForward,
+  Linkedin,
+  CreditCard,
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Features } from "@/components/internal/landing/features";
+
 import useLocalStorage, { User } from "@/hooks/use-localstorage";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { PopupButton } from "react-calendly";
+import { toast } from "sonner";
 
 function LandingPage() {
   const [user, setUser] = useLocalStorage<User>("user", {
@@ -24,6 +27,8 @@ function LandingPage() {
   const router = useRouter();
 
   const [calendlyRoot, setCalendlyRoot] = useState<HTMLElement | null>(null);
+  const [linkdinUrl, setLinkdinUrl] = useState("");
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -31,13 +36,23 @@ function LandingPage() {
     }
   }, []);
   // Modular handler for Try Now Free
+  // You can't pass props directly like a component, but you can pass params via query string or state.
   const handleTryNowFree = () => {
-    if (!user || user.try === 0) {
-      setUser({ name: user?.name || "Guest", try: 0 });
-      router.push("/dashboard");
-    } else {
-      router.push("/onboarding");
+    if (!linkdinUrl.includes("linkedin")) {
+      toast.error("Please enter LinkeDin Url.");
+      return;
     }
+    setLoading(true);
+    setTimeout(() => {
+      if (!user || user.onboarding || user.try === 0) {
+        setUser({ name: user?.name || "Guest", try: 0 });
+        // Pass params via query string
+        router.push(`/dashboard?linkedinUrl=${encodeURIComponent(linkdinUrl)}`);
+      } else {
+        toast.warning("Please complete onboarding first.");
+        router.push("/onboarding");
+      }
+    }, 2000);
   };
 
   return (
@@ -47,7 +62,7 @@ function LandingPage() {
         <div className="max-w-7xl mx-auto flex justify-between items-center w-full px-2 sm:px-4">
           <Link href="/" className="flex items-center gap-2 sm:gap-3">
             <div className="relative">
-              <div className="absolute inset-0 bg-card/60 backdrop-blur-sm rounded-full"></div>
+              <div className="absolute inset-0 bg-card/60 backdrop-blur-sm "></div>
             </div>
             <div className="flex -ml-2">
               <span className="text-left text-1xl font-bold text-foreground flex flex-col">
@@ -57,7 +72,11 @@ function LandingPage() {
             </div>
           </Link>
           <div className="flex items-center gap-2">
-            <Button asChild variant="outline" className="font-semibold">
+            <Button
+              asChild
+              variant="outline"
+              className="rounded-full font-semibold"
+            >
               <Link href="/login">Login / Sign Up</Link>
             </Button>
           </div>
@@ -65,7 +84,7 @@ function LandingPage() {
       </header>
 
       {/* Hero Section */}
-      <section className="relative flex-1 flex items-center mt-40 justify-center overflow-hidden min-h-[70vh]">
+      <section className="relative flex-1 flex items-center justify-center overflow-hidden min-h-[70vh]">
         <div className="absolute inset-0">
           <div className="absolute top-20 left-20 w-60 h-60 sm:w-72 sm:h-72 bg-primary/10 rounded-full blur-3xl animate-pulse"></div>
           <div className="absolute bottom-32 right-16 w-72 h-72 sm:w-96 sm:h-96 bg-secondary/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
@@ -85,7 +104,7 @@ function LandingPage() {
             size={70}
           />
           <UserCheck
-            className="absolute bottom-1/4 right-1/3 text-primary/30 animate-float delay-3000"
+            className="absolute bottom-1/4 right-10 text-primary/30 animate-float delay-3000"
             size={50}
           />
           <Trophy
@@ -94,110 +113,66 @@ function LandingPage() {
           />
         </div>
         <div className="relative z-10 flex flex-col items-center justify-center w-full max-w-3xl px-2 sm:px-4 text-center">
-          <h1 className="text-3xl sm:text-5xl md:text-7xl font-bold mb-6 leading-tight">
-            Emails That Actually Get Replies
+          <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold mb-6 leading-tight">
+            Emails That Actually <br /> Get Replies
           </h1>
-          <p className="text-base sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed">
+          <p className="text-sm sm:text-lg text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed">
             Craft personalized emails that speak directly to your
             prospect&apos;s pain points, goals, and interests. turning cold
             leads into qualified meetings.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button
-              size="lg"
-              aria-label="Try Now Free"
-              className="inline-flex items-center justify-center px-8 py-4 font-bold rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all"
-              onClick={handleTryNowFree}
-            >
-              Try Now Free <ArrowRight className="ml-2" size={20} />
-            </Button>
-            <Button size="lg" variant={"outline"} className="rounded-full">
-              {calendlyRoot && (
-                <PopupButton
-                  url="https://calendly.com/himal9626"
-                  rootElement={calendlyRoot}
-                  text="Schedule Your Meeting"
-                  className="w-full"
-                />
-              )}
-            </Button>
-          </div>
-
-          {/* Avatar Group Section */}
-          <div className="flex flex-col items-center mt-12">
-            <div className="flex justify-center items-center gap-0.5">
-              <div className="flex -space-x-5">
-                <Avatar className="ring-2 ring-white border border-primary shadow-md hover:scale-110 transition-transform w-12 h-12">
-                  <AvatarImage
-                    src="https://randomuser.me/api/portraits/men/32.jpg"
-                    alt="User 1"
-                  />
-                  <AvatarFallback>AB</AvatarFallback>
-                </Avatar>
-                <Avatar className="ring-2 ring-white border border-primary shadow-md hover:scale-110 transition-transform w-12 h-12">
-                  <AvatarImage
-                    src="https://randomuser.me/api/portraits/women/44.jpg"
-                    alt="User 2"
-                  />
-                  <AvatarFallback>CD</AvatarFallback>
-                </Avatar>
-                <Avatar className="ring-2 ring-white border border-primary shadow-md hover:scale-110 transition-transform w-12 h-12">
-                  <AvatarImage
-                    src="https://randomuser.me/api/portraits/men/65.jpg"
-                    alt="User 3"
-                  />
-                  <AvatarFallback>EF</AvatarFallback>
-                </Avatar>
-                <Avatar className="ring-2 ring-white border border-primary shadow-md hover:scale-110 transition-transform w-12 h-12">
-                  <AvatarImage
-                    src="https://randomuser.me/api/portraits/women/12.jpg"
-                    alt="User 4"
-                  />
-                  <AvatarFallback>GH</AvatarFallback>
-                </Avatar>
-                <Avatar className="ring-2 ring-white border border-primary shadow-md hover:scale-110 transition-transform w-12 h-12">
-                  <AvatarImage
-                    src="https://randomuser.me/api/portraits/men/75.jpg"
-                    alt="User 5"
-                  />
-                  <AvatarFallback>IJ</AvatarFallback>
-                </Avatar>
-                <Avatar className="ring-2 ring-white border border-primary shadow-md hover:scale-110 transition-transform w-12 h-12">
-                  <AvatarImage
-                    src="https://randomuser.me/api/portraits/women/23.jpg"
-                    alt="User 6"
-                  />
-                  <AvatarFallback>KL</AvatarFallback>
-                </Avatar>
-                <Avatar className="ring-2 ring-white border border-primary shadow-md hover:scale-110 transition-transform w-12 h-12">
-                  <AvatarImage
-                    src="https://randomuser.me/api/portraits/men/41.jpg"
-                    alt="User 7"
-                  />
-                  <AvatarFallback>MN</AvatarFallback>
-                </Avatar>
-                <Avatar className="ring-2 ring-white border border-primary shadow-md hover:scale-110 transition-transform w-12 h-12">
-                  <AvatarImage
-                    src="https://randomuser.me/api/portraits/women/36.jpg"
-                    alt="User 8"
-                  />
-                  <AvatarFallback>OP</AvatarFallback>
-                </Avatar>
-                <div
-                  className="flex items-center -mt-1 justify-center w-14 h-14 rounded-full bg-primary text-black font-bold text-lg border-2 border-white shadow-md z-10 hover:scale-110 transition-transform"
-                  aria-hidden="true"
-                >
-                  +99
-                </div>
+          <div className="flex flex-col w-full gap-6 items-center justify-center">
+            <div className="flex items-center border-[1px] w-full lg:w-3/4 p-3 text-primary border-primary rounded-full justify-between mt-4 pl-6 shadow-xl shadow-primary/30">
+              <div className="flex items-center justify-center">
+                <Linkedin className="w-4 h-4 lg:h-6 lg:w-6  animate-spin-slow" />
               </div>
+              <input
+                placeholder="https://www.linkedin.com/in/himal"
+                className="bg-transparent outline-none w-full px-4"
+                onChange={(e) => setLinkdinUrl(e.target.value)}
+              />
+              <Button
+                className={`px-2 py-1 lg:py-2 lg:px-4 rounded-2xl transition-all duration-500 ${
+                  loading
+                    ? "opacity-0 scale-90 pointer-events-none"
+                    : "opacity-100 scale-100"
+                }`}
+                onClick={handleTryNowFree}
+                disabled={loading}
+              >
+                <Sparkles
+                  className={`w-4 h-4 lg:h-6 lg:w-6 transition-all duration-500 ${
+                    loading ? "animate-spin" : "animate-spin-slow"
+                  }`}
+                />
+                Try Free
+              </Button>
             </div>
-            <span className="mt-4 text-lg font-semibold text-muted-foreground">
-              Join +99 sales professionals!
-            </span>
+
+            <div className="flex flex-col sm:flex-row items-center gap-4 mt-4">
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <CreditCard className="w-5 h-5 text-primary" />
+                <span className="text-sm">No credit card required</span>
+              </div>
+              <div className="hidden sm:block w-1 h-1 rounded-full bg-muted-foreground/50"></div>
+              <Button
+                size="lg"
+                variant={"outline"}
+                className="rounded-full px-6"
+              >
+                {calendlyRoot && (
+                  <PopupButton
+                    url="https://calendly.com/himal9626"
+                    rootElement={calendlyRoot}
+                    text="Schedule Your Meeting"
+                    className="w-full"
+                  />
+                )}
+              </Button>
+            </div>
           </div>
         </div>
       </section>
-      <Features />
     </div>
   );
 }

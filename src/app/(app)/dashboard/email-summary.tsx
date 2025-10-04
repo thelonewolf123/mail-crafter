@@ -4,7 +4,9 @@ import { Button } from "@/components/ui/button";
 import React from "react";
 
 interface Post {
-  title: string;
+  text: string;
+  author: string;
+  posted_at: string;
 }
 
 interface HistoryItem {
@@ -36,16 +38,23 @@ export function EmailSummary({
             <FileText className="text-primary" size={20} />
             <h3 className="font-semibold text-lg">Recent LinkedIn Posts</h3>
           </div>
-          <ul className="space-y-3">
-            {profileData.posts.map((post, idx) => (
-              <li
-                key={idx}
-                className="p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors"
-              >
-                <p className="text-sm font-medium">{post.title}</p>
-              </li>
-            ))}
-          </ul>
+          <div className="max-h-64 overflow-y-auto pr-2">
+            <ul className="space-y-3">
+              {profileData.posts.map((post, idx) => (
+                <li
+                  key={idx}
+                  className="p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors"
+                >
+                  <p className="text-sm font-medium whitespace-pre-line">
+                    {post.text}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    By: {post.author} | Posted: {post.posted_at}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          </div>
         </Card>
       )}
       {/* Generated Email */}

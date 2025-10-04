@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
-import { OnboardingData } from "@/server/actions";
+import { ServerOnboardingData } from "@/server/actions";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import useLocalStorage, { User } from "@/hooks/use-localstorage";
@@ -43,23 +43,24 @@ function OnboardingPage() {
   });
 
   const handleSubmit = async () => {
-    const res = await OnboardingData(form);
-    // if (!res.success) {
-    //   toast.error(res.data);
-    // } else {
-    setUser({
-      ...user,
-      onboarding: {
-        name: form.name,
-        role: form.role,
-        goal: form.goal,
-        emailsPerWeek: form.emailsPerWeek,
-        completed: true,
-      },
-    });
-    console.log(res);
-    router.push("/dashboard");
-    // }
+    const res = await ServerOnboardingData(form);
+    if (!res.success) {
+      toast.error(res.data);
+      return;
+    } else {
+      setUser({
+        ...user,
+        onboarding: {
+          name: form.name,
+          role: form.role,
+          goal: form.goal,
+          emailsPerWeek: form.emailsPerWeek,
+          completed: true,
+        },
+      });
+      console.log(res);
+      router.push("/dashboard");
+    }
   };
 
   const form = watch();
