@@ -21,7 +21,14 @@ import {
   ServerGetHistory,
   ServerLinkdinScrapper,
 } from "@/server/actions";
-import { HistoryItem, Post, ProfileData, RawPost, StepConfig } from "./types";
+import {
+  GeneratedEmailProps,
+  HistoryItem,
+  Post,
+  ProfileData,
+  RawPost,
+  StepConfig,
+} from "./types";
 
 // Step Component
 function TimelineStep({
@@ -84,7 +91,8 @@ export default function DashboardPage() {
   const [url, setUrl] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [profileData, setProfileData] = useState<ProfileData | null>(null);
-  const [generatedEmail, setGeneratedEmail] = useState<string>("");
+  const [generatedEmail, setGeneratedEmail] =
+    useState<GeneratedEmailProps | null>(null);
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [showEmailPref, setShowEmailPref] = useState(false);
   const [user, setUser] = useLocalStorage<User>("user", {
@@ -107,20 +115,20 @@ export default function DashboardPage() {
       }
     }
   }, []);
-  useEffect(() => {
-    const fetchHistory = async () => {
-      const response = await ServerGetHistory();
-      if (!response.success) {
-        toast.error(response.data);
-        setIsLoading(false);
-        return;
-      }
-      console.log(response);
+  // useEffect(() => {
+  //   const fetchHistory = async () => {
+  //     const response = await ServerGetHistory();
+  //     if (!response.success) {
+  //       toast.error(response.data);
+  //       setIsLoading(false);
+  //       return;
+  //     }
+  //     console.log(response);
 
-      setHistory([response.data]);
-    };
-    fetchHistory();
-  }, []);
+  //     setHistory([response.data]);
+  //   };
+  //   fetchHistory();
+  // }, []);
 
   const checkQuotaAndOnboarding = () => {
     if (userTries === 1 && !user?.onboarding?.completed) {
@@ -147,8 +155,10 @@ export default function DashboardPage() {
 
   async function handleUrlSubmit(submitUrl?: string) {
     const urlToUse = submitUrl ?? url;
-    if (!urlToUse) return;
-
+    if (!urlToUse.includes("linkedin")) {
+      toast.error("Please enter LinkeDin Url.");
+      return;
+    }
     if (userTries > 0 && !checkQuotaAndOnboarding()) return;
 
     setIsLoading(true);
@@ -171,21 +181,21 @@ export default function DashboardPage() {
   const handleGenerateEmail = async () => {
     setIsLoading(true);
     setCurrentStep(3);
-
-    const response = await ServerGenerateEmail(user.emailPreference);
+    const data = { ...user.emailPreference, linkedin: url };
+    const response = await ServerGenerateEmail(data);
     if (!response.success) {
       toast.error(response.data);
       setIsLoading(false);
       return;
     }
 
-    setGeneratedEmail(response.data);
+    setGeneratedEmail(response.data.response.output);
     setIsLoading(false);
     setCurrentStep(4);
 
     const newHistoryItem: HistoryItem = {
       url,
-      email: response.data,
+      email: response.data.response.output,
       posts: profileData?.posts || [],
       timestamp: new Date().toLocaleString(),
     };
@@ -196,13 +206,14 @@ export default function DashboardPage() {
     setCurrentStep(0);
     setUrl("");
     setProfileData(null);
-    setGeneratedEmail("");
+    setGeneratedEmail(null);
   };
 
   const handleSelectHistory = (item: HistoryItem) => {
     setUrl(item.url);
     setProfileData({ posts: item.posts });
-    setGeneratedEmail(item.email);
+    // If item.email is a string, we can't extract subject. We'll set subject as empty string.
+    setGeneratedEmail({ subject: "", email: item.email });
     setCurrentStep(4);
   };
 

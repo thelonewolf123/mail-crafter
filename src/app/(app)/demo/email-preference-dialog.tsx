@@ -76,11 +76,11 @@ export function EmailPreferenceDialog({
   }, [open, reset, user]);
 
   const onSubmit = async (data: EmailPreferenceData) => {
-    const response = await ServerEmailPreference(data);
-    if (!response.success) {
-      toast.warning(response.data);
-      return;
-    }
+    // const response = await ServerEmailPreference(data);
+    // if (!response.success) {
+    //   toast.warning(response.data);
+    //   return;
+    // }
     setUser({ ...user, emailPreference: data });
     onClose();
     if (onSaved) onSaved(); // call onSaved after saving

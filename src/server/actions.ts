@@ -19,10 +19,13 @@ export const ServerOnboardingData = withArcjetProtection(async (data) => {
 });
 
 export const ServerLinkdinScrapper = withArcjetProtection(async (data) => {
+  const params = {
+    linkedin: data,
+  };
   try {
     const response = await axios.post(
-      "https://n8n.watchwithme.in/workflow/linkdin",
-      data
+      "https://n8n.watchwithme.in/webhook-test/64286cce-a92b-4675-af9f-f2d18a67a058",
+      params
     );
     return { success: true, data: response.data };
   } catch (error: any) {
@@ -36,7 +39,7 @@ export const ServerLinkdinScrapper = withArcjetProtection(async (data) => {
 export const ServerGenerateEmail = withArcjetProtection(async (data) => {
   try {
     const response = await axios.post(
-      "https://n8n.watchwithme.in/workflow/linkdin",
+      "https://n8n.watchwithme.in/webhook-test/45fb8eeb-5874-40d7-81d4-3d8d95e5d92b",
       data
     );
     return { success: true, data: response.data };

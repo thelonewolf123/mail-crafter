@@ -45,11 +45,26 @@ export function HistoryAndEmail({
             <Mail className="text-primary" size={20} />
             <h3 className="font-semibold text-lg">Generated Email</h3>
           </div>
-          <pre className="whitespace-pre-wrap text-sm font-sans bg-muted/20 rounded-lg p-4 mb-4">
-            {generatedEmail}
+          <div className="mb-2">
+            <span className="block text-xs font-semibold text-muted-foreground mb-1">
+              Subject
+            </span>
+            <div className="bg-muted/10 rounded-md px-3 py-2 text-sm font-medium mb-2 border border-border/20">
+              {generatedEmail.subject}
+            </div>
+          </div>
+          <span className="block text-xs font-semibold text-muted-foreground mb-1">
+            Email
+          </span>
+          <pre className="whitespace-pre-wrap text-sm font-sans bg-muted/20 rounded-lg p-4 mb-4 border border-border/10">
+            {generatedEmail.email}
           </pre>
           <Button
-            onClick={() => navigator.clipboard.writeText(generatedEmail)}
+            onClick={() =>
+              navigator.clipboard.writeText(
+                `Subject: ${generatedEmail.subject}\n\n${generatedEmail.email}`
+              )
+            }
             className="font-medium w-full sm:w-auto"
           >
             Copy Email

@@ -45,7 +45,12 @@ export interface EmailPreferenceData {
 
 export interface HistoryAndEmailProps {
   profileData: { posts: Post[] } | null;
-  generatedEmail: string;
+  generatedEmail: GeneratedEmailProps | null;
   history: HistoryItem[];
   onSelectHistory: (item: HistoryItem) => void;
+}
+
+export interface GeneratedEmailProps {
+  subject: string;
+  email: string;
 }
