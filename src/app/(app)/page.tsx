@@ -155,20 +155,14 @@ function LandingPage() {
                 <span className="text-sm">No credit card required</span>
               </div>
               <div className="hidden sm:block w-1 h-1 rounded-full bg-muted-foreground/50"></div>
-              <Button
-                size="lg"
-                variant={"outline"}
-                className="rounded-full px-6"
-              >
-                {calendlyRoot && (
-                  <PopupButton
-                    url="https://calendly.com/himal9626"
-                    rootElement={calendlyRoot}
-                    text="Schedule Your Meeting"
-                    className="w-full"
-                  />
-                )}
-              </Button>
+              {calendlyRoot && (
+                <PopupButton
+                  url="https://calendly.com/himal9626"
+                  rootElement={calendlyRoot}
+                  text="Schedule Your Meeting"
+                  className="rounded-full px-6 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 py-2 font-medium text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none"
+                />
+              )}
             </div>
           </div>
         </div>
