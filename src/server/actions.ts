@@ -2,24 +2,21 @@
 
 import axios from "axios";
 import { withArcjetProtection } from "./arcjet-ratelimit";
-import { OnboardingTypes } from "@/app/(app)/onboarding/page";
 
-export const ServerOnboardingData = withArcjetProtection(
-  async (data: OnboardingTypes) => {
-    try {
-      const response = await axios.post(
-        "https://n8n.watchwithme.in/workflow/onboarding",
-        data
-      );
-      return { success: true, data: response.data };
-    } catch (error: any) {
-      return {
-        success: false,
-        data: error.message,
-      };
-    }
+export const ServerOnboardingData = withArcjetProtection(async (data) => {
+  try {
+    const response = await axios.post(
+      "https://n8n.watchwithme.in/workflow/onboarding",
+      data
+    );
+    return { success: true, data: response.data };
+  } catch (error: any) {
+    return {
+      success: false,
+      data: error.message,
+    };
   }
-);
+});
 
 export const ServerLinkdinScrapper = withArcjetProtection(async (data) => {
   try {
@@ -51,11 +48,10 @@ export const ServerGenerateEmail = withArcjetProtection(async (data) => {
   }
 });
 
-export const ServerGetHistory = withArcjetProtection(async (data) => {
+export const ServerGetHistory = withArcjetProtection(async () => {
   try {
-    const response = await axios.post(
-      "https://n8n.watchwithme.in/workflow/linkdin",
-      data
+    const response = await axios.get(
+      "https://n8n.watchwithme.in/workflow/linkdin"
     );
     return { success: true, data: response.data };
   } catch (error: any) {

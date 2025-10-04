@@ -13,6 +13,7 @@ import useLocalStorage, { User } from "@/hooks/use-localstorage";
 
 export type OnboardingTypes = {
   name: string;
+  email: string;
   role: string;
   goal: string;
   emailsPerWeek: string;
@@ -35,6 +36,7 @@ function OnboardingPage() {
   } = useForm({
     defaultValues: {
       name: "",
+      email: "",
       role: "",
       goal: "",
       emailsPerWeek: "",
@@ -52,6 +54,7 @@ function OnboardingPage() {
         ...user,
         onboarding: {
           name: form.name,
+          email: form.email,
           role: form.role,
           goal: form.goal,
           emailsPerWeek: form.emailsPerWeek,
@@ -88,18 +91,32 @@ function OnboardingPage() {
               <span className="text-xs text-red-500">Name is required</span>
             )}
           </div>
-          {/* <div>
+          <div>
             <label className="block text-sm font-medium mb-2 text-left">
-              Company Name
+              Email
             </label>
             <Input
-              type="text"
-              placeholder="Enter company name"
-              value={form.company}
-              onChange={(e) => setForm({ ...form, company: e.target.value })}
+              type="email"
+              placeholder="himal@watchwithme.in"
+              {...register("email", {
+                required: true,
+                pattern: {
+                  value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                  message: "Invalid email address",
+                },
+              })}
+              value={form.email}
+              onChange={(e) =>
+                setValue("email", e.target.value, { shouldValidate: true })
+              }
               className="text-base"
             />
-          </div> */}
+            {errors.email && (
+              <span className="text-xs text-red-500">
+                {errors.email.message || "Email is required"}
+              </span>
+            )}
+          </div>
           <div>
             <label className="block text-sm font-medium mb-3 text-left">
               Your Role
@@ -129,7 +146,8 @@ function OnboardingPage() {
           </div>
         </div>
       ),
-      isValid: !!form.name.trim() && !!form.role,
+      isValid:
+        !!form.name.trim() && !!form.email && !errors.email && !!form.role,
     },
     {
       label: "What brings you to MailCrafter?",

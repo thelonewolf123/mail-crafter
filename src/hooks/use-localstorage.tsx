@@ -1,4 +1,4 @@
-import { EmailPreferenceData } from "@/app/(app)/dashboard/email-preference-dialog";
+import { EmailPreferenceData } from "@/app/(app)/dashboard/types";
 import { OnboardingTypes } from "@/app/(app)/onboarding/page";
 import { useState, useEffect } from "react";
 

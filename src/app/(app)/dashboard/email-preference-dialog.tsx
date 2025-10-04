@@ -15,22 +15,7 @@ import { useForm, useFieldArray } from "react-hook-form";
 import useLocalStorage, { User } from "@/hooks/use-localstorage";
 import { ServerEmailPreference } from "@/server/actions";
 import { toast } from "sonner";
-
-interface KeyFeature {
-  feature_name: string;
-  benefit: string;
-}
-
-export interface EmailPreferenceData {
-  email: string;
-  product_name: string;
-  product_description: string;
-  key_features: KeyFeature[];
-  usp: string;
-  cta: string;
-  sellerName: string;
-  sellerTitle: string;
-}
+import { EmailPreferenceData } from "./types";
 
 export function EmailPreferenceDialog({
   open,

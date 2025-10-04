@@ -2,33 +2,14 @@ import { FileText, Mail, Clock, Sparkles } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import React from "react";
+import { HistoryAndEmailProps } from "./types";
 
-interface Post {
-  text: string;
-  author: string;
-  posted_at: string;
-}
-
-interface HistoryItem {
-  url: string;
-  email: string;
-  posts: Post[];
-  timestamp: string;
-}
-
-interface EmailSummaryProps {
-  profileData: { posts: Post[] } | null;
-  generatedEmail: string;
-  history: HistoryItem[];
-  onSelectHistory: (item: HistoryItem) => void;
-}
-
-export function EmailSummary({
+export function HistoryAndEmail({
   profileData,
   generatedEmail,
   history,
   onSelectHistory,
-}: EmailSummaryProps) {
+}: HistoryAndEmailProps) {
   return (
     <div className="space-y-8">
       {/* LinkedIn Posts */}
@@ -83,7 +64,7 @@ export function EmailSummary({
             <h3 className="font-semibold text-lg">History</h3>
           </div>
           <ul className="space-y-3">
-            {history.map((item, idx) => (
+            {history?.map((item, idx) => (
               <li
                 key={idx}
                 onClick={() => onSelectHistory(item)}

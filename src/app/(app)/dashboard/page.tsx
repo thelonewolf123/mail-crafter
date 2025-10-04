@@ -12,35 +12,60 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { EmailPreferenceDialog } from "./email-preference-dialog";
-import { EmailSummary } from "./email-summary";
+import { HistoryAndEmail } from "./email-summary";
 import useLocalStorage, { User } from "@/hooks/use-localstorage";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { ServerGenerateEmail, ServerLinkdinScrapper } from "@/server/actions";
+import {
+  ServerGenerateEmail,
+  ServerGetHistory,
+  ServerLinkdinScrapper,
+} from "@/server/actions";
+import { HistoryItem, Post, ProfileData, RawPost, StepConfig } from "./types";
 
-// Types
-interface Post {
-  text: string;
-  author: string;
-  posted_at: string;
-}
+// Step Component
+function TimelineStep({
+  step,
+  currentStep,
+  isLoading,
+  children,
+}: {
+  step: StepConfig;
+  currentStep: number;
+  isLoading: boolean;
+  children: React.ReactNode;
+}) {
+  const isActive = currentStep >= step.number;
+  const isCurrentLoading = isLoading && currentStep === step.number - 1;
 
-// Raw API response type
-interface RawPost {
-  text: string;
-  posted_at: { date: string };
-  author: { first_name: string; last_name: string };
-}
-
-interface ProfileData {
-  posts: Post[];
-}
-
-interface HistoryItem {
-  url: string;
-  email: string;
-  posts: Post[];
-  timestamp: string;
+  return (
+    <div className="relative">
+      <div className="flex items-start gap-6">
+        <div
+          className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${
+            isActive
+              ? "bg-primary text-black"
+              : "bg-muted text-muted-foreground"
+          }`}
+        >
+          {isCurrentLoading ? (
+            <Loader2 size={20} className="animate-spin" />
+          ) : isActive ? (
+            <Check size={20} />
+          ) : (
+            step.number
+          )}
+        </div>
+        <div className={`flex-1 ${step.showConnector ? "pb-10" : ""}`}>
+          <h3 className="text-lg font-semibold mb-3">{step.title}</h3>
+          {children}
+        </div>
+      </div>
+      {step.showConnector && isActive && (
+        <div className="absolute left-5 top-12 w-0.5 h-full bg-border"></div>
+      )}
+    </div>
+  );
 }
 
 function Topbar() {
@@ -62,71 +87,82 @@ export default function DashboardPage() {
   const [generatedEmail, setGeneratedEmail] = useState<string>("");
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [showEmailPref, setShowEmailPref] = useState(false);
-  const [hasEmailPref, setHasEmailPref] = useState<boolean>(false);
   const [user, setUser] = useLocalStorage<User>("user", {
     name: "Guest",
     try: 0,
   });
   const router = useRouter();
 
-  // Remove redirect on mount
-  // Only check if preferences exist in user object
+  const hasEmailPref = !!user?.emailPreference;
+  const userTries = user?.try || 0;
+
   useEffect(() => {
-    setHasEmailPref(!!user?.emailPreference);
-    // Check for LinkedIn URL in query params
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
       const urlParam = params.get("linkedinUrl");
-      console.log(urlParam);
 
-      if (urlParam && urlParam.includes("linkedin")) {
+      if (urlParam?.includes("linkedin")) {
         setUrl(urlParam);
-
-        setTimeout(() => {
-          handleUrlSubmit(urlParam);
-        }, 100); // slight delay to ensure state update
+        setTimeout(() => handleUrlSubmit(urlParam), 100);
       }
     }
   }, []);
+  useEffect(() => {
+    const fetchHistory = async () => {
+      const response = await ServerGetHistory();
+      if (!response.success) {
+        toast.error(response.data);
+        setIsLoading(false);
+        return;
+      }
+      console.log(response);
+
+      setHistory([response.data]);
+    };
+    fetchHistory();
+  }, []);
+
+  const checkQuotaAndOnboarding = () => {
+    if (userTries === 1 && !user?.onboarding?.completed) {
+      toast.warning("Please complete onboarding first.");
+      setTimeout(() => router.push("/onboarding"), 1500);
+      return false;
+    }
+
+    if (userTries >= 3) {
+      toast.warning("you reached free 3 quota...");
+      return false;
+    }
+
+    return true;
+  };
+
+  const transformPosts = (data: RawPost[]): Post[] => {
+    return data.map((post) => ({
+      text: post.text,
+      author: `${post.author.first_name} ${post.author.last_name}`,
+      posted_at: post.posted_at.date,
+    }));
+  };
 
   async function handleUrlSubmit(submitUrl?: string) {
     const urlToUse = submitUrl ?? url;
     if (!urlToUse) return;
-    console.log("whaat");
 
-    // Allow first try without onboarding/quota
-    if ((user?.try || 0) === 0) {
-      // First try, allow usage
-    } else if ((user?.try || 0) === 1) {
-      // Second try, check onboarding
-      if (!user?.onboarding?.completed) {
-        toast.warning("Please complete onboarding first.");
-        setTimeout(() => {
-          router.push("/onboarding");
-        }, 1500);
-        return;
-      }
-    } else if ((user?.try || 0) >= 3) {
-      toast.warning("you reached free 3 quota...");
-      return;
-    }
-    // Increment try count only if allowed to proceed
-    setUser({ ...user, try: (user?.try || 0) + 1 });
+    if (userTries > 0 && !checkQuotaAndOnboarding()) return;
 
     setIsLoading(true);
 
     const res = await ServerLinkdinScrapper(urlToUse);
     if (!res.success) {
       toast.error(res.data);
+      setIsLoading(false);
       return;
     }
-    const results = res.data.map((post: RawPost) => ({
-      text: post.text,
-      author: post.author.first_name + " " + post.author.last_name,
-      posted_at: post.posted_at.date,
-    }));
-    setProfileData({ posts: results });
 
+    const posts = transformPosts(res.data);
+    setProfileData({ posts });
+    setUser({ ...user, try: userTries + 1 });
     setCurrentStep(1);
     setIsLoading(false);
     setCurrentStep(2);
@@ -139,13 +175,15 @@ export default function DashboardPage() {
     const response = await ServerGenerateEmail(user.emailPreference);
     if (!response.success) {
       toast.error(response.data);
+      setIsLoading(false);
       return;
     }
+
     setGeneratedEmail(response.data);
     setIsLoading(false);
     setCurrentStep(4);
 
-    const newHistoryItem = {
+    const newHistoryItem: HistoryItem = {
       url,
       email: response.data,
       posts: profileData?.posts || [],
@@ -168,6 +206,10 @@ export default function DashboardPage() {
     setCurrentStep(4);
   };
 
+  const handleEmailPrefSave = () => {
+    setShowEmailPref(false);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-tr from-primary/5 via-background to-secondary/10 flex flex-col font-sans">
       <Topbar />
@@ -187,198 +229,142 @@ export default function DashboardPage() {
             {/* Timeline Steps */}
             <Card className="relative space-y-10 bg-card/90 border border-border/30 shadow-xl px-6 py-8 lg:px-10 lg:py-12">
               {/* Step 1: Enter URL */}
-              <div className="relative">
-                <div className="flex items-start gap-6">
-                  <div
-                    className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${
-                      currentStep >= 1
-                        ? "bg-primary text-black"
-                        : "bg-muted text-muted-foreground"
-                    }`}
-                  >
-                    {currentStep >= 1 ? <Check size={20} /> : "1"}
-                  </div>
-                  <div className="flex-1 pb-10">
-                    <h3 className="text-lg font-semibold mb-3">
-                      Enter LinkedIn Profile URL
-                    </h3>
-                    <div className="space-y-4">
-                      <Input
-                        type="url"
-                        placeholder="https://www.linkedin.com/in/username"
-                        value={url}
-                        onChange={(e) => setUrl(e.target.value)}
-                        disabled={currentStep > 0}
-                        onKeyDown={(e) =>
-                          e.key === "Enter" && handleUrlSubmit()
-                        }
-                      />
-                      {currentStep === 0 && (
-                        <Button
-                          onClick={() => handleUrlSubmit()}
-                          disabled={!url}
-                          className="w-full sm:w-auto"
-                        >
-                          Analyze Profile
-                        </Button>
-                      )}
-                    </div>
-                  </div>
+              <TimelineStep
+                step={{
+                  number: 1,
+                  title: "Enter LinkedIn Profile URL",
+                  showConnector: true,
+                }}
+                currentStep={currentStep}
+                isLoading={isLoading}
+              >
+                <div className="space-y-4">
+                  <Input
+                    type="url"
+                    placeholder="https://www.linkedin.com/in/username"
+                    value={url}
+                    onChange={(e) => setUrl(e.target.value)}
+                    disabled={currentStep > 0}
+                    onKeyDown={(e) => e.key === "Enter" && handleUrlSubmit()}
+                  />
+                  {currentStep === 0 && (
+                    <Button
+                      onClick={() => handleUrlSubmit()}
+                      disabled={!url}
+                      className="w-full sm:w-auto"
+                    >
+                      Analyze Profile
+                    </Button>
+                  )}
                 </div>
-                {currentStep >= 1 && (
-                  <div className="absolute left-5 top-12 w-0.5 h-full bg-border"></div>
-                )}
-              </div>
+              </TimelineStep>
+
               {/* Step 2: Analyzing */}
               {currentStep >= 1 && (
-                <div className="relative">
-                  <div className="flex items-start gap-6">
-                    <div
-                      className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${
-                        currentStep >= 2
-                          ? "bg-primary text-black"
-                          : "bg-muted text-muted-foreground"
-                      }`}
-                    >
-                      {isLoading && currentStep === 1 ? (
-                        <Loader2 size={20} className="animate-spin" />
-                      ) : currentStep >= 2 ? (
-                        <Check size={20} />
-                      ) : (
-                        "2"
-                      )}
-                    </div>
-                    <div className="flex-1 pb-10">
-                      <h3 className="text-lg font-semibold mb-2">
-                        Analyzing Profile
-                      </h3>
-                      {isLoading && currentStep === 1 ? (
-                        <p className="text-muted-foreground">
-                          Fetching LinkedIn posts and profile data...
-                        </p>
-                      ) : currentStep >= 2 ? (
-                        <p className="text-muted-foreground">
-                          ✓ Profile analyzed successfully
-                        </p>
-                      ) : null}
-                    </div>
-                  </div>
-                  {currentStep >= 2 && (
-                    <div className="absolute left-5 top-12 w-0.5 h-full bg-border"></div>
-                  )}
-                </div>
+                <TimelineStep
+                  step={{
+                    number: 2,
+                    title: "Analyzing Profile",
+                    showConnector: true,
+                  }}
+                  currentStep={currentStep}
+                  isLoading={isLoading}
+                >
+                  <p className="text-muted-foreground">
+                    {isLoading && currentStep === 1
+                      ? "Fetching LinkedIn posts and profile data..."
+                      : "✓ Profile analyzed successfully"}
+                  </p>
+                </TimelineStep>
               )}
+
               {/* Step 3: Customize Email */}
               {currentStep >= 2 && (
-                <div className="relative">
-                  <div className="flex items-start gap-6">
-                    <div
-                      className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${
-                        currentStep >= 3
-                          ? "bg-primary text-background"
-                          : "bg-muted text-muted-foreground"
+                <TimelineStep
+                  step={{
+                    number: 3,
+                    title: "Product Details",
+                    showConnector: true,
+                  }}
+                  currentStep={currentStep}
+                  isLoading={isLoading}
+                >
+                  <div className="space-y-5">
+                    <Button
+                      onClick={() => setShowEmailPref(true)}
+                      variant="default"
+                      className={`mb-2 w-full sm:w-auto font-semibold flex items-center gap-2 shadow rounded-lg px-4 py-2 text-base ${
+                        !hasEmailPref ? "animate-pulse" : ""
                       }`}
                     >
-                      {currentStep >= 3 ? <Check size={20} /> : "3"}
-                    </div>
-                    <div className="flex-1 pb-10">
-                      <h3 className="text-lg font-semibold mb-3 text-foreground">
-                        Product Details
-                      </h3>
-                      <div className="space-y-5">
-                        <div>
-                          <Button
-                            onClick={() => setShowEmailPref(true)}
-                            variant="default"
-                            className={`mb-2 w-full sm:w-auto font-semibold flex items-center gap-2 shadow rounded-lg px-4 py-2 text-base ${
-                              !hasEmailPref ? "animate-pulse" : ""
-                            }`}
-                          >
-                            {hasEmailPref ? (
-                              <Pencil size={18} className="mr-1" />
-                            ) : (
-                              <Plus size={18} className="mr-1" />
-                            )}
-                            {hasEmailPref
-                              ? "Edit Product Details"
-                              : "Enter Your Product Details"}
-                          </Button>
-                        </div>
-                        {/* Show Create Personalized Email only if preferences exist */}
-                        {hasEmailPref && currentStep === 2 && (
-                          <Button
-                            onClick={handleGenerateEmail}
-                            variant="default"
-                            className="flex items-center gap-2 w-full sm:w-auto font-bold"
-                          >
-                            Create Personalized Email <ArrowRight size={18} />
-                          </Button>
-                        )}
-                        {/* If no preferences, show a hint */}
-                        {!hasEmailPref && currentStep === 2 && (
-                          <p className="text-sm text-destructive font-semibold mt-2">
-                            Please click to enter your product details to
-                            generate an email.
-                          </p>
-                        )}
-                      </div>
-                    </div>
+                      {hasEmailPref ? (
+                        <>
+                          <Pencil size={18} className="mr-1" />
+                          Edit Product Details
+                        </>
+                      ) : (
+                        <>
+                          <Plus size={18} className="mr-1" />
+                          Enter Your Product Details
+                        </>
+                      )}
+                    </Button>
+
+                    {currentStep === 2 &&
+                      (hasEmailPref ? (
+                        <Button
+                          onClick={handleGenerateEmail}
+                          variant="default"
+                          className="flex items-center gap-2 w-full sm:w-auto font-bold"
+                        >
+                          Create Personalized Email <ArrowRight size={18} />
+                        </Button>
+                      ) : (
+                        <p className="text-sm text-destructive font-semibold mt-2">
+                          Please click to enter your product details to generate
+                          an email.
+                        </p>
+                      ))}
                   </div>
-                  {currentStep >= 3 && (
-                    <div className="absolute left-5 top-12 w-0.5 h-full bg-border"></div>
-                  )}
-                </div>
+                </TimelineStep>
               )}
+
               {/* Step 4: Email Generated */}
               {currentStep >= 3 && (
-                <div className="relative">
-                  <div className="flex items-start gap-6">
-                    <div
-                      className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${
-                        currentStep >= 4
-                          ? "bg-primary text-black"
-                          : "bg-muted text-muted-foreground"
-                      }`}
-                    >
-                      {isLoading && currentStep === 3 ? (
-                        <Loader2 size={20} className="animate-spin" />
-                      ) : currentStep >= 4 ? (
-                        <Check size={20} />
-                      ) : (
-                        "4"
-                      )}
+                <TimelineStep
+                  step={{
+                    number: 4,
+                    title: "Email Generated",
+                    showConnector: false,
+                  }}
+                  currentStep={currentStep}
+                  isLoading={isLoading}
+                >
+                  {isLoading && currentStep === 3 ? (
+                    <p className="text-muted-foreground">
+                      Crafting your personalized email...
+                    </p>
+                  ) : currentStep >= 4 ? (
+                    <div className="space-y-4">
+                      <p className="text-muted-foreground">
+                        ✓ Your email is ready!
+                      </p>
+                      <Button
+                        onClick={handleReset}
+                        variant="outline"
+                        className="w-full sm:w-auto"
+                      >
+                        Create Another Email
+                      </Button>
                     </div>
-                    <div className="flex-1">
-                      <h3 className="text-lg font-semibold mb-2">
-                        Email Generated
-                      </h3>
-                      {isLoading && currentStep === 3 ? (
-                        <p className="text-muted-foreground">
-                          Crafting your personalized email...
-                        </p>
-                      ) : currentStep >= 4 ? (
-                        <div className="space-y-4">
-                          <p className="text-muted-foreground">
-                            ✓ Your email is ready!
-                          </p>
-                          <Button
-                            onClick={handleReset}
-                            variant="outline"
-                            className="w-full sm:w-auto"
-                          >
-                            Create Another Email
-                          </Button>
-                        </div>
-                      ) : null}
-                    </div>
-                  </div>
-                </div>
+                  ) : null}
+                </TimelineStep>
               )}
             </Card>
 
             {/* Mobile-only: Results & History below timeline */}
             <div className="block lg:hidden">
-              <EmailSummary
+              <HistoryAndEmail
                 profileData={profileData}
                 generatedEmail={generatedEmail}
                 history={history}
@@ -387,10 +373,11 @@ export default function DashboardPage() {
             </div>
           </div>
         </div>
+
         {/* Right Side - Results & History */}
         <div className="hidden lg:flex lg:w-2/5 border-l border-border/30 bg-background/80 flex-col overflow-hidden">
           <div className="flex-1 overflow-y-auto p-8">
-            <EmailSummary
+            <HistoryAndEmail
               profileData={profileData}
               generatedEmail={generatedEmail}
               history={history}
@@ -398,14 +385,11 @@ export default function DashboardPage() {
             />
           </div>
         </div>
+
         <EmailPreferenceDialog
           open={showEmailPref}
-          onClose={() => {
-            setShowEmailPref(false);
-          }}
-          onSaved={() => {
-            setHasEmailPref(true);
-          }}
+          onClose={() => setShowEmailPref(false)}
+          onSaved={handleEmailPrefSave}
         />
       </main>
     </div>
