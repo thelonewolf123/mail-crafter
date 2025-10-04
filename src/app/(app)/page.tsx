@@ -47,7 +47,7 @@ function LandingPage() {
       if (!user || user.onboarding || user.try === 0) {
         setUser({ name: user?.name || "Guest", try: 0 });
         // Pass params via query string
-        router.push(`/dashboard?linkedinUrl=${encodeURIComponent(linkdinUrl)}`);
+        router.push(`/demo?linkedinUrl=${encodeURIComponent(linkdinUrl)}`);
       } else {
         toast.warning("Please complete onboarding first.");
         router.push("/onboarding");

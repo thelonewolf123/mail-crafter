@@ -62,7 +62,7 @@ function OnboardingPage() {
         },
       });
       console.log(res);
-      router.push("/dashboard");
+      router.push("/demo");
     }
   };
 
