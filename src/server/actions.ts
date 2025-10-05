@@ -13,7 +13,7 @@ export const serverOnboardingData = withArcjetProtection(async (data) => {
   } catch (error) {
     return {
       success: false,
-      data: (error as Error).message
+      data: (error as Error).message,
     };
   }
 });
@@ -23,14 +23,14 @@ export const serverLinkedInScrapper = withArcjetProtection(async (data) => {
     const response = await axios.post(
       "https://n8n.watchwithme.in/webhook/scrape-linkedin",
       {
-        linkedin: data
+        linkedin: data,
       }
     );
     return { success: true, data: response.data };
   } catch (error) {
     return {
       success: false,
-      data: (error as Error).message
+      data: (error as Error).message,
     };
   }
 });
@@ -45,7 +45,7 @@ export const serverGenerateEmail = withArcjetProtection(async (data) => {
   } catch (error) {
     return {
       success: false,
-      data: (error as Error).message
+      data: (error as Error).message,
     };
   }
 });
@@ -59,7 +59,7 @@ export const serverGetHistory = withArcjetProtection(async () => {
   } catch (error) {
     return {
       success: false,
-      data: (error as Error).message
+      data: (error as Error).message,
     };
   }
 });
@@ -74,7 +74,7 @@ export const serverEmailPreference = withArcjetProtection(async (data) => {
   } catch (error) {
     return {
       success: false,
-      data: (error as Error).message
+      data: (error as Error).message,
     };
   }
 });

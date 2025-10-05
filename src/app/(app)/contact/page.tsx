@@ -13,12 +13,15 @@ import {
   CardDescription,
   CardContent,
 } from "@/components/ui/card";
+import { useSearchParams } from "next/navigation";
 
 export default function ContactPage() {
   const [form, setForm] = useState({ name: "", email: "", message: "" });
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [calendlyRoot, setCalendlyRoot] = useState<HTMLElement | null>(null);
+  const searchParams = useSearchParams();
+  const urlParam = searchParams.get("from");
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -44,6 +47,13 @@ export default function ContactPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-secondary/10 flex flex-col items-center justify-center font-sans px-2 sm:px-4 py-10">
       <div className="w-full max-w-4xl mx-auto grid md:grid-cols-2 gap-6">
+        {/* Conditional quota-exceeded message */}
+        {urlParam === "quota-exceeded" && (
+          <div className="col-span-2 mb-4 p-4 rounded-lg bg-yellow-100 border border-yellow-300 text-yellow-900 text-center font-semibold text-base">
+            Your free quota is exceeded. Book a 30min consultation or contact us
+            to try more.
+          </div>
+        )}
         {/* Calendly CTA Card - shadcn/ui */}
         <Card className="flex flex-col justify-between relative overflow-hidden bg-gradient-to-br from-primary/5 via-primary/10 to-primary/5">
           {/* Decorative background elements */}

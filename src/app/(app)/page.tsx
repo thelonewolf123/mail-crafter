@@ -12,17 +12,12 @@ import {
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
-import useLocalStorage, { User } from "@/hooks/use-localstorage";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { PopupButton } from "react-calendly";
 import { toast } from "sonner";
 
 function LandingPage() {
-  const [user, setUser] = useLocalStorage<User>("user", {
-    name: "Guest",
-    try: 0,
-  });
   const router = useRouter();
 
   const [calendlyRoot, setCalendlyRoot] = useState<HTMLElement | null>(null);
@@ -42,7 +37,8 @@ function LandingPage() {
     }
     setLoading(true);
 
-    setUser({ name: user?.name || "Guest", try: 0 });
+    // Only set user if not already present in localStorage
+
     // Pass params via query string
     router.push(`/demo?linkedinUrl=${encodeURIComponent(linkdinUrl)}`);
   };
@@ -64,13 +60,13 @@ function LandingPage() {
             </div>
           </Link>
           <div className="flex items-center gap-2">
-            <Button
+            {/* <Button
               asChild
               variant="outline"
               className="rounded-full font-semibold"
             >
               <Link href="/login">Login / Sign Up</Link>
-            </Button>
+            </Button> */}
           </div>
         </div>
       </header>

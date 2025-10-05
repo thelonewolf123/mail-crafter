@@ -12,26 +12,24 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { X, Plus } from "lucide-react";
 import { useForm, useFieldArray } from "react-hook-form";
-import useLocalStorage, { User } from "@/hooks/use-localstorage";
 // import { serverEmailPreference } from "@/server/actions";
 // import { toast } from "sonner";
 import { EmailPreferenceData } from "./types";
+import { User } from "@/hooks/use-localstorage";
 
 export function EmailPreferenceDialog({
   open,
   onClose,
-  onSaved, // new prop
+  onSaved,
+  user,
+  setUser,
 }: {
   open: boolean;
   onClose: () => void;
-  onSaved?: () => void; // new prop
+  onSaved?: () => void;
+  user: User;
+  setUser: (value: User | ((val: User) => User)) => void;
 }) {
-  // Use localStorage hook for user
-  const [user, setUser] = useLocalStorage<User>("user", {
-    name: "Guest",
-    try: 1,
-  });
-
   const { register, control, handleSubmit, reset } =
     useForm<EmailPreferenceData>({
       defaultValues: {
@@ -76,12 +74,7 @@ export function EmailPreferenceDialog({
   }, [open, reset, user]);
 
   const onSubmit = async (data: EmailPreferenceData) => {
-    // const response = await serverEmailPreference(data);
-    // if (!response.success) {
-    //   toast.warning(response.data);
-    //   return;
-    // }
-    setUser({ ...user, emailPreference: data });
+    setUser((prev) => ({ ...prev, emailPreference: data }));
     onClose();
     if (onSaved) onSaved(); // call onSaved after saving
   };

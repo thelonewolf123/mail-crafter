@@ -1,7 +1,8 @@
-import { FileText, Mail, Clock, Sparkles } from "lucide-react";
+"use client";
+import { FileText, Mail, Clock, Sparkles, Check } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import React from "react";
+import React, { useState } from "react";
 import { HistoryAndEmailProps } from "./types";
 
 export function HistoryAndEmail({
@@ -10,6 +11,9 @@ export function HistoryAndEmail({
   history,
   onSelectHistory,
 }: HistoryAndEmailProps) {
+  // Add state for copy animation
+  const [copied, setCopied] = useState(false);
+
   return (
     <div className="space-y-8">
       {/* LinkedIn Posts */}
@@ -60,14 +64,33 @@ export function HistoryAndEmail({
             {generatedEmail.email}
           </pre>
           <Button
-            onClick={() =>
-              navigator.clipboard.writeText(
+            onClick={async () => {
+              await navigator.clipboard.writeText(
                 `Subject: ${generatedEmail.subject}\n\n${generatedEmail.email}`
-              )
-            }
-            className="font-medium w-full sm:w-auto"
+              );
+              setCopied(true);
+              setTimeout(() => setCopied(false), 1500);
+            }}
+            className={`font-medium w-full sm:w-auto relative transition-all duration-300 ${
+              copied ? "bg-green-500 scale-105" : ""
+            }`}
+            disabled={copied}
           >
-            Copy Email
+            <span
+              className={`transition-opacity duration-300 ${
+                copied ? "opacity-0 absolute" : "opacity-100"
+              }`}
+            >
+              Copy Email
+            </span>
+            <span
+              className={`transition-opacity duration-300 flex items-center gap-2 ${
+                copied ? "opacity-100" : "opacity-0 absolute"
+              }`}
+            >
+              <Check />
+              Copied!
+            </span>
           </Button>
         </Card>
       )}

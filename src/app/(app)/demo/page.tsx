@@ -15,7 +15,7 @@ import { EmailPreferenceDialog } from "./email-preference-dialog";
 import { HistoryAndEmail } from "./email-summary";
 import useLocalStorage, { User } from "@/hooks/use-localstorage";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { serverGenerateEmail, serverLinkedInScrapper } from "@/server/actions";
 import {
   GeneratedEmailProps,
@@ -25,6 +25,7 @@ import {
   RawPost,
   StepConfig,
 } from "./types";
+import ShimmerButton from "@/components/ui/shimmer-button";
 
 const transformPosts = (data: RawPost[]): Post[] => {
   return data.map((post) => ({
@@ -104,57 +105,49 @@ export default function DashboardPage() {
     try: 0,
   });
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const hasEmailPref = !!user?.emailPreference;
 
-  const checkQuotaAndOnboarding = useCallback(() => {
+  const checkQuota = () => {
     if (user.try >= 3) {
       toast.warning("you reached free 3 quota...");
-      router.push("/contact?from=quota-over");
-
+      router.push("/contact?from=quota-exceeded");
       return false;
     }
-
     return true;
-  }, [router, user.try]);
+  };
 
-  const handleUrlSubmit = useCallback(
-    async (submitUrl?: string) => {
-      const urlToUse = submitUrl ?? url;
-      if (!urlToUse) return;
-
-      if (!checkQuotaAndOnboarding()) return;
-
-      setIsLoading(true);
-
-      const res = await serverLinkedInScrapper(urlToUse);
-      if (!res.success) {
-        toast.error(res.data);
-        setIsLoading(false);
-        return;
-      }
-
-      const posts = transformPosts(res.data);
-      setProfileData({ posts });
-      setUser((usr) => ({ ...usr, try: usr.try + 1 }));
-      setCurrentStep(1);
+  async function handleUrlSubmit(submitUrl?: string) {
+    const urlToUse = submitUrl ?? url;
+    if (!urlToUse) return;
+    if (!checkQuota()) return;
+    setIsLoading(true);
+    setCurrentStep(1);
+    const res = await serverLinkedInScrapper(urlToUse);
+    console.log(res);
+    if (!res.success) {
+      toast.error(res.data);
       setIsLoading(false);
-      setCurrentStep(2);
-    },
-    [checkQuotaAndOnboarding, setUser, url]
-  );
+      return;
+    }
+    const posts = transformPosts(res.data);
+    setProfileData({ posts });
+    setUser((usr) => {
+      if (!usr) return { name: "Guest", try: 0 };
+      return { ...usr, try: usr.try + 1 };
+    });
+    setIsLoading(false);
+    setCurrentStep(2);
+  }
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const params = new URLSearchParams(window.location.search);
-      const urlParam = params.get("linkedinUrl");
-
-      if (urlParam?.includes("linkedin")) {
-        setUrl(urlParam);
-        setTimeout(() => handleUrlSubmit(urlParam), 100);
-      }
+    const urlParam = searchParams.get("linkedinUrl");
+    if (urlParam?.includes("linkedin")) {
+      setUrl(urlParam);
+      setTimeout(() => handleUrlSubmit(urlParam), 200);
     }
-  }, [handleUrlSubmit]);
+  }, [searchParams]);
 
   const handleGenerateEmail = async () => {
     setIsLoading(true);
@@ -239,9 +232,12 @@ export default function DashboardPage() {
                   {currentStep === 0 && (
                     <Button
                       onClick={() => handleUrlSubmit()}
-                      disabled={!url}
-                      className="w-full sm:w-auto"
+                      disabled={!url || isLoading || currentStep > 0}
+                      className={`w-full sm:w-auto `}
                     >
+                      {isLoading && currentStep === 0 ? (
+                        <Loader2 size={18} className="animate-spin mr-2" />
+                      ) : null}
                       Analyze Profile
                     </Button>
                   )}
@@ -279,35 +275,30 @@ export default function DashboardPage() {
                   isLoading={isLoading}
                 >
                   <div className="space-y-5">
-                    <Button
-                      onClick={() => setShowEmailPref(true)}
-                      variant="default"
-                      className={`mb-2 w-full sm:w-auto font-semibold flex items-center gap-2 shadow rounded-lg px-4 py-2 text-base ${
-                        !hasEmailPref ? "animate-pulse" : ""
-                      }`}
-                    >
-                      {hasEmailPref ? (
-                        <>
-                          <Pencil size={18} className="mr-1" />
-                          Edit Product Details
-                        </>
-                      ) : (
-                        <>
-                          <Plus size={18} className="mr-1" />
-                          Enter Your Product Details
-                        </>
-                      )}
-                    </Button>
-
+                    {hasEmailPref ? (
+                      <Button
+                        onClick={() => setShowEmailPref(true)}
+                        variant="default"
+                        className={`mb-2 w-full sm:w-auto font-semibold flex items-center gap-2 shadow rounded-lg px-4 py-2 text-base`}
+                      >
+                        <Pencil size={18} className="mr-1" />
+                        Edit Product Details
+                      </Button>
+                    ) : (
+                      <ShimmerButton
+                        onClick={() => setShowEmailPref(true)}
+                        text="Enter Your Product Details"
+                        className="mb-2 w-full sm:w-auto font-semibold flex items-center gap-2 shadow rounded-lg px-4 py-2 text-base"
+                      />
+                    )}
                     {currentStep === 2 &&
                       (hasEmailPref ? (
-                        <Button
+                        <ShimmerButton
                           onClick={handleGenerateEmail}
-                          variant="default"
+                          text="Create Personalized Email"
+                          icon={<ArrowRight size={18} />}
                           className="flex items-center gap-2 w-full sm:w-auto font-bold"
-                        >
-                          Create Personalized Email <ArrowRight size={18} />
-                        </Button>
+                        />
                       ) : (
                         <p className="text-sm text-destructive font-semibold mt-2">
                           Please click to enter your product details to generate
@@ -379,6 +370,8 @@ export default function DashboardPage() {
           open={showEmailPref}
           onClose={() => setShowEmailPref(false)}
           onSaved={handleEmailPrefSave}
+          user={user}
+          setUser={setUser}
         />
       </main>
     </div>
