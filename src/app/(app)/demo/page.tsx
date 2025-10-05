@@ -6,7 +6,7 @@ import {
   Check,
   ArrowRight,
   Plus,
-  Pencil
+  Pencil,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,14 +23,14 @@ import {
   Post,
   ProfileData,
   RawPost,
-  StepConfig
+  StepConfig,
 } from "./types";
 
 const transformPosts = (data: RawPost[]): Post[] => {
   return data.map((post) => ({
     text: post.text,
     author: `${post.author.first_name} ${post.author.last_name}`,
-    posted_at: post.posted_at.date
+    posted_at: post.posted_at.date,
   }));
 };
 
@@ -39,7 +39,7 @@ function TimelineStep({
   step,
   currentStep,
   isLoading,
-  children
+  children,
 }: {
   step: StepConfig;
   currentStep: number;
@@ -101,34 +101,29 @@ export default function DashboardPage() {
   const [showEmailPref, setShowEmailPref] = useState(false);
   const [user, setUser] = useLocalStorage<User>("user", {
     name: "Guest",
-    try: 0
+    try: 0,
   });
   const router = useRouter();
 
   const hasEmailPref = !!user?.emailPreference;
-  const userTries = user?.try || 0;
 
   const checkQuotaAndOnboarding = useCallback(() => {
-    if (userTries === 2 && !user?.onboarding?.completed) {
-      toast.warning("Please complete onboarding first.");
-      // setTimeout(() => router.push("/onboarding"), 1500);
-      return false;
-    }
-
-    if (userTries >= 3) {
+    if (user.try >= 3) {
       toast.warning("you reached free 3 quota...");
+      router.push("/contact?from=quota-over");
+
       return false;
     }
 
     return true;
-  }, [user?.onboarding?.completed, userTries]);
+  }, [router, user.try]);
 
   const handleUrlSubmit = useCallback(
     async (submitUrl?: string) => {
       const urlToUse = submitUrl ?? url;
       if (!urlToUse) return;
 
-      if (userTries > 0 && !checkQuotaAndOnboarding()) return;
+      if (!checkQuotaAndOnboarding()) return;
 
       setIsLoading(true);
 
@@ -141,12 +136,12 @@ export default function DashboardPage() {
 
       const posts = transformPosts(res.data);
       setProfileData({ posts });
-      setUser({ ...user, try: userTries + 1 });
+      setUser((usr) => ({ ...usr, try: usr.try + 1 }));
       setCurrentStep(1);
       setIsLoading(false);
       setCurrentStep(2);
     },
-    [checkQuotaAndOnboarding, setUser, url, user, userTries]
+    [checkQuotaAndOnboarding, setUser, url]
   );
 
   useEffect(() => {
@@ -180,7 +175,7 @@ export default function DashboardPage() {
       url,
       email: response.data.response.output,
       posts: profileData?.posts || [],
-      timestamp: new Date().toLocaleString()
+      timestamp: new Date().toLocaleString(),
     };
     setHistory((prev) => [newHistoryItem, ...prev]);
   };
@@ -227,7 +222,7 @@ export default function DashboardPage() {
                 step={{
                   number: 1,
                   title: "Enter LinkedIn Profile URL",
-                  showConnector: true
+                  showConnector: true,
                 }}
                 currentStep={currentStep}
                 isLoading={isLoading}
@@ -259,7 +254,7 @@ export default function DashboardPage() {
                   step={{
                     number: 2,
                     title: "Analyzing Profile",
-                    showConnector: true
+                    showConnector: true,
                   }}
                   currentStep={currentStep}
                   isLoading={isLoading}
@@ -278,7 +273,7 @@ export default function DashboardPage() {
                   step={{
                     number: 3,
                     title: "Product Details",
-                    showConnector: true
+                    showConnector: true,
                   }}
                   currentStep={currentStep}
                   isLoading={isLoading}
@@ -329,7 +324,7 @@ export default function DashboardPage() {
                   step={{
                     number: 4,
                     title: "Email Generated",
-                    showConnector: false
+                    showConnector: false,
                   }}
                   currentStep={currentStep}
                   isLoading={isLoading}

@@ -7,7 +7,7 @@ import {
   UserCheck,
   Trophy,
   Linkedin,
-  CreditCard
+  CreditCard,
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -21,7 +21,7 @@ import { toast } from "sonner";
 function LandingPage() {
   const [user, setUser] = useLocalStorage<User>("user", {
     name: "Guest",
-    try: 0
+    try: 0,
   });
   const router = useRouter();
 
@@ -34,24 +34,17 @@ function LandingPage() {
       setCalendlyRoot(document.getElementById("__next") || document.body);
     }
   }, []);
-  // Modular handler for Try Now Free
-  // You can't pass props directly like a component, but you can pass params via query string or state.
+
   const handleTryNowFree = () => {
     if (!linkdinUrl.includes("linkedin")) {
       toast.error("Please enter LinkeDin Url.");
       return;
     }
     setLoading(true);
-    setTimeout(() => {
-      if (!user || user.onboarding || user.try === 0) {
-        setUser({ name: user?.name || "Guest", try: 0 });
-        // Pass params via query string
-        router.push(`/demo?linkedinUrl=${encodeURIComponent(linkdinUrl)}`);
-      } else {
-        toast.warning("Please complete onboarding first.");
-        router.push("/onboarding");
-      }
-    }, 2000);
+
+    setUser({ name: user?.name || "Guest", try: 0 });
+    // Pass params via query string
+    router.push(`/demo?linkedinUrl=${encodeURIComponent(linkdinUrl)}`);
   };
 
   return (
