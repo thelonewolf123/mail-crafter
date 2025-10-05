@@ -6,7 +6,7 @@ export const aj = arcjet({
     fixedWindow({
       mode: "LIVE", // actually enforce
       window: "1m", // 1 minute
-      max: 30, // max 5 requests
-    }),
-  ],
+      max: 10 // max 5 requests
+    })
+  ]
 });

@@ -1,12 +1,12 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   Sparkles,
   Loader2,
   Check,
   ArrowRight,
   Plus,
-  Pencil,
+  Pencil
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,26 +16,30 @@ import { HistoryAndEmail } from "./email-summary";
 import useLocalStorage, { User } from "@/hooks/use-localstorage";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import {
-  ServerGenerateEmail,
-  ServerGetHistory,
-  ServerLinkdinScrapper,
-} from "@/server/actions";
+import { serverGenerateEmail, serverLinkedInScrapper } from "@/server/actions";
 import {
   GeneratedEmailProps,
   HistoryItem,
   Post,
   ProfileData,
   RawPost,
-  StepConfig,
+  StepConfig
 } from "./types";
+
+const transformPosts = (data: RawPost[]): Post[] => {
+  return data.map((post) => ({
+    text: post.text,
+    author: `${post.author.first_name} ${post.author.last_name}`,
+    posted_at: post.posted_at.date
+  }));
+};
 
 // Step Component
 function TimelineStep({
   step,
   currentStep,
   isLoading,
-  children,
+  children
 }: {
   step: StepConfig;
   currentStep: number;
@@ -97,12 +101,53 @@ export default function DashboardPage() {
   const [showEmailPref, setShowEmailPref] = useState(false);
   const [user, setUser] = useLocalStorage<User>("user", {
     name: "Guest",
-    try: 0,
+    try: 0
   });
   const router = useRouter();
 
   const hasEmailPref = !!user?.emailPreference;
   const userTries = user?.try || 0;
+
+  const checkQuotaAndOnboarding = useCallback(() => {
+    if (userTries === 2 && !user?.onboarding?.completed) {
+      toast.warning("Please complete onboarding first.");
+      // setTimeout(() => router.push("/onboarding"), 1500);
+      return false;
+    }
+
+    if (userTries >= 3) {
+      toast.warning("you reached free 3 quota...");
+      return false;
+    }
+
+    return true;
+  }, [user?.onboarding?.completed, userTries]);
+
+  const handleUrlSubmit = useCallback(
+    async (submitUrl?: string) => {
+      const urlToUse = submitUrl ?? url;
+      if (!urlToUse) return;
+
+      if (userTries > 0 && !checkQuotaAndOnboarding()) return;
+
+      setIsLoading(true);
+
+      const res = await serverLinkedInScrapper(urlToUse);
+      if (!res.success) {
+        toast.error(res.data);
+        setIsLoading(false);
+        return;
+      }
+
+      const posts = transformPosts(res.data);
+      setProfileData({ posts });
+      setUser({ ...user, try: userTries + 1 });
+      setCurrentStep(1);
+      setIsLoading(false);
+      setCurrentStep(2);
+    },
+    [checkQuotaAndOnboarding, setUser, url, user, userTries]
+  );
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -114,75 +159,13 @@ export default function DashboardPage() {
         setTimeout(() => handleUrlSubmit(urlParam), 100);
       }
     }
-  }, []);
-  // useEffect(() => {
-  //   const fetchHistory = async () => {
-  //     const response = await ServerGetHistory();
-  //     if (!response.success) {
-  //       toast.error(response.data);
-  //       setIsLoading(false);
-  //       return;
-  //     }
-  //     console.log(response);
-
-  //     setHistory([response.data]);
-  //   };
-  //   fetchHistory();
-  // }, []);
-
-  const checkQuotaAndOnboarding = () => {
-    if (userTries === 1 && !user?.onboarding?.completed) {
-      toast.warning("Please complete onboarding first.");
-      setTimeout(() => router.push("/onboarding"), 1500);
-      return false;
-    }
-
-    if (userTries >= 3) {
-      toast.warning("you reached free 3 quota...");
-      return false;
-    }
-
-    return true;
-  };
-
-  const transformPosts = (data: RawPost[]): Post[] => {
-    return data.map((post) => ({
-      text: post.text,
-      author: `${post.author.first_name} ${post.author.last_name}`,
-      posted_at: post.posted_at.date,
-    }));
-  };
-
-  async function handleUrlSubmit(submitUrl?: string) {
-    const urlToUse = submitUrl ?? url;
-    if (!urlToUse.includes("linkedin")) {
-      toast.error("Please enter LinkeDin Url.");
-      return;
-    }
-    if (userTries > 0 && !checkQuotaAndOnboarding()) return;
-
-    setIsLoading(true);
-
-    const res = await ServerLinkdinScrapper(urlToUse);
-    if (!res.success) {
-      toast.error(res.data);
-      setIsLoading(false);
-      return;
-    }
-
-    const posts = transformPosts(res.data);
-    setProfileData({ posts });
-    setUser({ ...user, try: userTries + 1 });
-    setCurrentStep(1);
-    setIsLoading(false);
-    setCurrentStep(2);
-  }
+  }, [handleUrlSubmit]);
 
   const handleGenerateEmail = async () => {
     setIsLoading(true);
     setCurrentStep(3);
-    const data = { ...user.emailPreference, linkedin: url };
-    const response = await ServerGenerateEmail(data);
+
+    const response = await serverGenerateEmail(user.emailPreference);
     if (!response.success) {
       toast.error(response.data);
       setIsLoading(false);
@@ -197,7 +180,7 @@ export default function DashboardPage() {
       url,
       email: response.data.response.output,
       posts: profileData?.posts || [],
-      timestamp: new Date().toLocaleString(),
+      timestamp: new Date().toLocaleString()
     };
     setHistory((prev) => [newHistoryItem, ...prev]);
   };
@@ -244,7 +227,7 @@ export default function DashboardPage() {
                 step={{
                   number: 1,
                   title: "Enter LinkedIn Profile URL",
-                  showConnector: true,
+                  showConnector: true
                 }}
                 currentStep={currentStep}
                 isLoading={isLoading}
@@ -276,7 +259,7 @@ export default function DashboardPage() {
                   step={{
                     number: 2,
                     title: "Analyzing Profile",
-                    showConnector: true,
+                    showConnector: true
                   }}
                   currentStep={currentStep}
                   isLoading={isLoading}
@@ -295,7 +278,7 @@ export default function DashboardPage() {
                   step={{
                     number: 3,
                     title: "Product Details",
-                    showConnector: true,
+                    showConnector: true
                   }}
                   currentStep={currentStep}
                   isLoading={isLoading}
@@ -346,7 +329,7 @@ export default function DashboardPage() {
                   step={{
                     number: 4,
                     title: "Email Generated",
-                    showConnector: false,
+                    showConnector: false
                   }}
                   currentStep={currentStep}
                   isLoading={isLoading}

@@ -9,10 +9,10 @@ export function withArcjetProtection<T, R>(handler: (args?: T) => Promise<R>) {
       if (decision.reason.isRateLimit()) {
         return {
           success: false,
-          data: "Too many requests. Please wait a bit.",
-        } as any;
+          data: "Too many requests. Please wait a bit."
+        };
       }
-      return { success: false, data: "Request blocked." } as any;
+      return { success: false, data: "Request blocked." };
     }
     return handler(args);
   };

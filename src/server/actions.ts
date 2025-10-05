@@ -3,79 +3,78 @@
 import axios from "axios";
 import { withArcjetProtection } from "./arcjet-ratelimit";
 
-export const ServerOnboardingData = withArcjetProtection(async (data) => {
+export const serverOnboardingData = withArcjetProtection(async (data) => {
   try {
     const response = await axios.post(
       "https://n8n.watchwithme.in/workflow/onboarding",
       data
     );
     return { success: true, data: response.data };
-  } catch (error: any) {
+  } catch (error) {
     return {
       success: false,
-      data: error.message,
+      data: (error as Error).message
     };
   }
 });
 
-export const ServerLinkdinScrapper = withArcjetProtection(async (data) => {
-  const params = {
-    linkedin: data,
-  };
+export const serverLinkedInScrapper = withArcjetProtection(async (data) => {
   try {
     const response = await axios.post(
-      "https://n8n.watchwithme.in/webhook-test/64286cce-a92b-4675-af9f-f2d18a67a058",
-      params
+      "https://n8n.watchwithme.in/webhook/scrape-linkedin",
+      {
+        linkedin: data
+      }
     );
     return { success: true, data: response.data };
-  } catch (error: any) {
+  } catch (error) {
     return {
       success: false,
-      data: error.message,
+      data: (error as Error).message
     };
   }
 });
 
-export const ServerGenerateEmail = withArcjetProtection(async (data) => {
+export const serverGenerateEmail = withArcjetProtection(async (data) => {
   try {
     const response = await axios.post(
-      "https://n8n.watchwithme.in/webhook-test/45fb8eeb-5874-40d7-81d4-3d8d95e5d92b",
+      "https://n8n.watchwithme.in/webhook/craft-email",
       data
     );
     return { success: true, data: response.data };
-  } catch (error: any) {
+  } catch (error) {
     return {
       success: false,
-      data: error.message,
+      data: (error as Error).message
     };
   }
 });
 
-export const ServerGetHistory = withArcjetProtection(async () => {
+export const serverGetHistory = withArcjetProtection(async () => {
   try {
     const response = await axios.get(
       "https://n8n.watchwithme.in/workflow/linkdin"
     );
     return { success: true, data: response.data };
-  } catch (error: any) {
+  } catch (error) {
     return {
       success: false,
-      data: error.message,
+      data: (error as Error).message
     };
   }
 });
 
-export const ServerEmailPreference = withArcjetProtection(async (data) => {
+export const serverEmailPreference = withArcjetProtection(async (data) => {
   try {
     const response = await axios.post(
       "https://n8n.watchwithme.in/workflow/linkdin",
       data
     );
     return { success: true, data: response.data };
-  } catch (error: any) {
+  } catch (error) {
     return {
       success: false,
-      data: error.message,
+      data: (error as Error).message
     };
   }
 });

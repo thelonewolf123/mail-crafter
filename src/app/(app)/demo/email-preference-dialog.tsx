@@ -5,7 +5,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
+  DialogFooter
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,14 +13,14 @@ import { Button } from "@/components/ui/button";
 import { X, Plus } from "lucide-react";
 import { useForm, useFieldArray } from "react-hook-form";
 import useLocalStorage, { User } from "@/hooks/use-localstorage";
-import { ServerEmailPreference } from "@/server/actions";
+import { serverEmailPreference } from "@/server/actions";
 import { toast } from "sonner";
 import { EmailPreferenceData } from "./types";
 
 export function EmailPreferenceDialog({
   open,
   onClose,
-  onSaved, // new prop
+  onSaved // new prop
 }: {
   open: boolean;
   onClose: () => void;
@@ -29,7 +29,7 @@ export function EmailPreferenceDialog({
   // Use localStorage hook for user
   const [user, setUser] = useLocalStorage<User>("user", {
     name: "Guest",
-    try: 1,
+    try: 1
   });
 
   const { register, control, handleSubmit, reset } =
@@ -42,13 +42,13 @@ export function EmailPreferenceDialog({
         usp: "",
         cta: "",
         sellerName: "",
-        sellerTitle: "",
-      },
+        sellerTitle: ""
+      }
     });
 
   const { fields, append, remove } = useFieldArray({
     control,
-    name: "key_features",
+    name: "key_features"
   });
 
   // Load preferences from user object in localStorage on open
@@ -68,7 +68,7 @@ export function EmailPreferenceDialog({
         usp: parsed.usp || "",
         cta: parsed.cta || "",
         sellerName: parsed.sellerName || "",
-        sellerTitle: parsed.sellerTitle || "",
+        sellerTitle: parsed.sellerTitle || ""
       });
     } else if (open) {
       reset();
@@ -76,7 +76,7 @@ export function EmailPreferenceDialog({
   }, [open, reset, user]);
 
   const onSubmit = async (data: EmailPreferenceData) => {
-    // const response = await ServerEmailPreference(data);
+    // const response = await serverEmailPreference(data);
     // if (!response.success) {
     //   toast.warning(response.data);
     //   return;
@@ -246,7 +246,7 @@ export function EmailPreferenceDialog({
                           </label>
                           <Input
                             {...register(`key_features.${idx}.feature_name`, {
-                              required: true,
+                              required: true
                             })}
                             placeholder="e.g., Real-time Analytics"
                             className="h-9"
@@ -258,7 +258,7 @@ export function EmailPreferenceDialog({
                           </label>
                           <Textarea
                             {...register(`key_features.${idx}.benefit`, {
-                              required: true,
+                              required: true
                             })}
                             placeholder="How does this feature help customers?"
                             rows={2}

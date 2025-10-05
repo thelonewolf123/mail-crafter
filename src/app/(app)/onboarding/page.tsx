@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
-import { ServerOnboardingData } from "@/server/actions";
+import { serverOnboardingData } from "@/server/actions";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import useLocalStorage, { User } from "@/hooks/use-localstorage";
@@ -25,27 +25,27 @@ function OnboardingPage() {
   const router = useRouter();
   const [user, setUser] = useLocalStorage<User>("user", {
     name: "Guest",
-    try: 1,
+    try: 1
   });
 
   const {
     register,
     setValue,
     watch,
-    formState: { errors },
+    formState: { errors }
   } = useForm({
     defaultValues: {
       name: "",
       email: "",
       role: "",
       goal: "",
-      emailsPerWeek: "",
+      emailsPerWeek: ""
     },
-    mode: "onChange",
+    mode: "onChange"
   });
 
   const handleSubmit = async () => {
-    const res = await ServerOnboardingData(form);
+    const res = await serverOnboardingData(form);
     if (!res.success) {
       toast.error(res.data);
       return;
@@ -58,8 +58,8 @@ function OnboardingPage() {
           role: form.role,
           goal: form.goal,
           emailsPerWeek: form.emailsPerWeek,
-          completed: true,
-        },
+          completed: true
+        }
       });
       console.log(res);
       router.push("/demo");
@@ -102,8 +102,8 @@ function OnboardingPage() {
                 required: true,
                 pattern: {
                   value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                  message: "Invalid email address",
-                },
+                  message: "Invalid email address"
+                }
               })}
               value={form.email}
               onChange={(e) =>
@@ -147,7 +147,7 @@ function OnboardingPage() {
         </div>
       ),
       isValid:
-        !!form.name.trim() && !!form.email && !errors.email && !!form.role,
+        !!form.name.trim() && !!form.email && !errors.email && !!form.role
     },
     {
       label: "What brings you to MailCrafter?",
@@ -162,7 +162,7 @@ function OnboardingPage() {
                 "Book more meetings",
                 "Nurture leads",
                 "Brand awareness",
-                "Other",
+                "Other"
               ].map((goal) => (
                 <Button
                   key={goal}
@@ -218,8 +218,8 @@ function OnboardingPage() {
           </div>
         </div>
       ),
-      isValid: !!form.goal && !!form.emailsPerWeek,
-    },
+      isValid: !!form.goal && !!form.emailsPerWeek
+    }
   ];
 
   const stepIcons = [
@@ -232,7 +232,7 @@ function OnboardingPage() {
       key="goal"
       className="mx-auto mb-4 text-secondary animate-float delay-500"
       size={48}
-    />,
+    />
   ];
 
   const stepTitles = ["About You", "Your Goals"];

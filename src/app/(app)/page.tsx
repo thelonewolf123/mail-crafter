@@ -1,14 +1,13 @@
 "use client";
+
 import {
-  ArrowRight,
   Mail,
   Megaphone,
   Sparkles,
   UserCheck,
   Trophy,
-  FastForward,
   Linkedin,
-  CreditCard,
+  CreditCard
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -22,7 +21,7 @@ import { toast } from "sonner";
 function LandingPage() {
   const [user, setUser] = useLocalStorage<User>("user", {
     name: "Guest",
-    try: 0,
+    try: 0
   });
   const router = useRouter();
 
