@@ -1,13 +1,6 @@
 "use client";
-import { useCallback, useEffect, useState } from "react";
-import {
-  Sparkles,
-  Loader2,
-  Check,
-  ArrowRight,
-  Plus,
-  Pencil,
-} from "lucide-react";
+import { useEffect, useState } from "react";
+import { Sparkles, Loader2, Check, ArrowRight, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -147,7 +140,7 @@ export default function DashboardPage() {
       setUrl(urlParam);
       setTimeout(() => handleUrlSubmit(urlParam), 200);
     }
-  }, [searchParams]);
+  }, []);
 
   const handleGenerateEmail = async () => {
     setIsLoading(true);
