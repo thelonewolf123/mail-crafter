@@ -1,4 +1,5 @@
 "use client";
+
 import { useEffect, useState } from "react";
 import { Sparkles, Loader2, Check, ArrowRight, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -16,7 +17,7 @@ import {
   Post,
   ProfileData,
   RawPost,
-  StepConfig,
+  StepConfig
 } from "./types";
 import ShimmerButton from "@/components/ui/shimmer-button";
 
@@ -24,7 +25,7 @@ const transformPosts = (data: RawPost[]): Post[] => {
   return data.map((post) => ({
     text: post.text,
     author: `${post.author.first_name} ${post.author.last_name}`,
-    posted_at: post.posted_at.date,
+    posted_at: post.posted_at.date
   }));
 };
 
@@ -33,7 +34,7 @@ function TimelineStep({
   step,
   currentStep,
   isLoading,
-  children,
+  children
 }: {
   step: StepConfig;
   currentStep: number;
@@ -73,7 +74,7 @@ function TimelineStep({
   );
 }
 
-function Topbar() {
+function TopBar() {
   return (
     <header className="w-full px-6 py-4 border-b border-border/30 bg-background/80 backdrop-blur-md flex items-center justify-between">
       <div className="flex items-center gap-2">
@@ -95,7 +96,7 @@ export default function DashboardPage() {
   const [showEmailPref, setShowEmailPref] = useState(false);
   const [user, setUser] = useLocalStorage<User>("user", {
     name: "Guest",
-    try: 0,
+    try: 0
   });
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -115,6 +116,7 @@ export default function DashboardPage() {
     const urlToUse = submitUrl ?? url;
     if (!urlToUse) return;
     if (!checkQuota()) return;
+
     setIsLoading(true);
     setCurrentStep(1);
     const res = await serverLinkedInScrapper(urlToUse);
@@ -139,7 +141,13 @@ export default function DashboardPage() {
     if (urlParam?.includes("linkedin")) {
       setUrl(urlParam);
       setTimeout(() => handleUrlSubmit(urlParam), 200);
+
+      // Clear URL search parameters
+      const url = new URL(window.location.href);
+      url.searchParams.delete("linkedinUrl");
+      window.history.replaceState({}, "", url.toString());
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleGenerateEmail = async () => {
@@ -161,7 +169,7 @@ export default function DashboardPage() {
       url,
       email: response.data.response.output,
       posts: profileData?.posts || [],
-      timestamp: new Date().toLocaleString(),
+      timestamp: new Date().toLocaleString()
     };
     setHistory((prev) => [newHistoryItem, ...prev]);
   };
@@ -187,7 +195,7 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-tr from-primary/5 via-background to-secondary/10 flex flex-col font-sans">
-      <Topbar />
+      <TopBar />
       <main className="flex-1 flex overflow-hidden">
         {/* Left Side - Timeline */}
         <div className="w-full lg:w-3/5 flex flex-col overflow-y-auto px-4 py-8 lg:px-12 lg:py-12 space-y-10">
@@ -208,7 +216,7 @@ export default function DashboardPage() {
                 step={{
                   number: 1,
                   title: "Enter LinkedIn Profile URL",
-                  showConnector: true,
+                  showConnector: true
                 }}
                 currentStep={currentStep}
                 isLoading={isLoading}
@@ -243,7 +251,7 @@ export default function DashboardPage() {
                   step={{
                     number: 2,
                     title: "Analyzing Profile",
-                    showConnector: true,
+                    showConnector: true
                   }}
                   currentStep={currentStep}
                   isLoading={isLoading}
@@ -262,7 +270,7 @@ export default function DashboardPage() {
                   step={{
                     number: 3,
                     title: "Product Details",
-                    showConnector: true,
+                    showConnector: true
                   }}
                   currentStep={currentStep}
                   isLoading={isLoading}
@@ -308,7 +316,7 @@ export default function DashboardPage() {
                   step={{
                     number: 4,
                     title: "Email Generated",
-                    showConnector: false,
+                    showConnector: false
                   }}
                   currentStep={currentStep}
                   isLoading={isLoading}
