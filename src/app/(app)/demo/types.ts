@@ -52,5 +52,5 @@ export interface HistoryAndEmailProps {
 
 export interface GeneratedEmailProps {
   subject: string;
-  email: string;
+  content: string;
 }

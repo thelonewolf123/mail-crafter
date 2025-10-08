@@ -61,12 +61,12 @@ export function HistoryAndEmail({
             Email
           </span>
           <pre className="whitespace-pre-wrap text-sm font-sans bg-muted/20 rounded-lg p-4 mb-4 border border-border/10">
-            {generatedEmail.email}
+            {generatedEmail.content}
           </pre>
           <Button
             onClick={async () => {
               await navigator.clipboard.writeText(
-                `Subject: ${generatedEmail.subject}\n\n${generatedEmail.email}`
+                `Subject: ${generatedEmail.subject}\n\n${generatedEmail.content}`
               );
               setCopied(true);
               setTimeout(() => setCopied(false), 1500);

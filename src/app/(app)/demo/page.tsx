@@ -17,7 +17,7 @@ import {
   Post,
   ProfileData,
   RawPost,
-  StepConfig
+  StepConfig,
 } from "./types";
 import ShimmerButton from "@/components/ui/shimmer-button";
 
@@ -25,7 +25,7 @@ const transformPosts = (data: RawPost[]): Post[] => {
   return data.map((post) => ({
     text: post.text,
     author: `${post.author.first_name} ${post.author.last_name}`,
-    posted_at: post.posted_at.date
+    posted_at: post.posted_at.date,
   }));
 };
 
@@ -34,7 +34,7 @@ function TimelineStep({
   step,
   currentStep,
   isLoading,
-  children
+  children,
 }: {
   step: StepConfig;
   currentStep: number;
@@ -96,7 +96,7 @@ export default function DashboardPage() {
   const [showEmailPref, setShowEmailPref] = useState(false);
   const [user, setUser] = useLocalStorage<User>("user", {
     name: "Guest",
-    try: 0
+    try: 0,
   });
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -154,22 +154,26 @@ export default function DashboardPage() {
     setIsLoading(true);
     setCurrentStep(3);
 
-    const response = await serverGenerateEmail(user.emailPreference);
+    const data = { ...user.emailPreference, linkedin: url };
+
+    const response = await serverGenerateEmail(data);
+    console.log(response);
+
     if (!response.success) {
       toast.error(response.data);
       setIsLoading(false);
       return;
     }
 
-    setGeneratedEmail(response.data.response.output);
+    setGeneratedEmail(response.data);
     setIsLoading(false);
     setCurrentStep(4);
 
     const newHistoryItem: HistoryItem = {
       url,
-      email: response.data.response.output,
+      email: response.data,
       posts: profileData?.posts || [],
-      timestamp: new Date().toLocaleString()
+      timestamp: new Date().toLocaleString(),
     };
     setHistory((prev) => [newHistoryItem, ...prev]);
   };
@@ -185,7 +189,7 @@ export default function DashboardPage() {
     setUrl(item.url);
     setProfileData({ posts: item.posts });
     // If item.email is a string, we can't extract subject. We'll set subject as empty string.
-    setGeneratedEmail({ subject: "", email: item.email });
+    setGeneratedEmail({ subject: "", content: item.email });
     setCurrentStep(4);
   };
 
@@ -216,7 +220,7 @@ export default function DashboardPage() {
                 step={{
                   number: 1,
                   title: "Enter LinkedIn Profile URL",
-                  showConnector: true
+                  showConnector: true,
                 }}
                 currentStep={currentStep}
                 isLoading={isLoading}
@@ -251,7 +255,7 @@ export default function DashboardPage() {
                   step={{
                     number: 2,
                     title: "Analyzing Profile",
-                    showConnector: true
+                    showConnector: true,
                   }}
                   currentStep={currentStep}
                   isLoading={isLoading}
@@ -270,7 +274,7 @@ export default function DashboardPage() {
                   step={{
                     number: 3,
                     title: "Product Details",
-                    showConnector: true
+                    showConnector: true,
                   }}
                   currentStep={currentStep}
                   isLoading={isLoading}
@@ -316,7 +320,7 @@ export default function DashboardPage() {
                   step={{
                     number: 4,
                     title: "Email Generated",
-                    showConnector: false
+                    showConnector: false,
                   }}
                   currentStep={currentStep}
                   isLoading={isLoading}
