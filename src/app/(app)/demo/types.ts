@@ -1,16 +1,12 @@
 export interface Post {
-  text: string;
-  author: string;
-  posted_at: string;
-}
-
-export interface RawPost {
-  text: string;
-  posted_at: { date: string };
-  author: { first_name: string; last_name: string };
+  content: string;
+  postedAt: string;
 }
 
 export interface ProfileData {
+  name: string;
+  linkedinUrl: string;
+  title: string;
   posts: Post[];
 }
 
@@ -19,6 +15,8 @@ export interface HistoryItem {
   email: string;
   posts: Post[];
   timestamp: string;
+  name?: string;
+  title?: string;
 }
 
 export interface StepConfig {
@@ -44,7 +42,7 @@ export interface EmailPreferenceData {
 }
 
 export interface HistoryAndEmailProps {
-  profileData: { posts: Post[] } | null;
+  profileData: ProfileData | null;
   generatedEmail: GeneratedEmailProps | null;
   history: HistoryItem[];
   onSelectHistory: (item: HistoryItem) => void;

@@ -11,21 +11,19 @@ import useLocalStorage, { User } from "@/hooks/use-localstorage";
 import { toast } from "sonner";
 import { useRouter, useSearchParams } from "next/navigation";
 import { serverGenerateEmail, serverLinkedInScrapper } from "@/server/actions";
-import {
-  GeneratedEmailProps,
-  HistoryItem,
-  Post,
-  ProfileData,
-  RawPost,
-  StepConfig,
-} from "./types";
+import { GeneratedEmailProps, StepConfig, ProfileData, Post } from "./types";
 import ShimmerButton from "@/components/ui/shimmer-button";
+
+// Define RawPost type inline since it's not imported
+interface RawPost {
+  content: string;
+  postedAt: string;
+}
 
 const transformPosts = (data: RawPost[]): Post[] => {
   return data.map((post) => ({
-    text: post.text,
-    author: `${post.author.first_name} ${post.author.last_name}`,
-    posted_at: post.posted_at.date,
+    content: post.content,
+    postedAt: post.postedAt,
   }));
 };
 
@@ -92,7 +90,6 @@ export default function DashboardPage() {
   const [profileData, setProfileData] = useState<ProfileData | null>(null);
   const [generatedEmail, setGeneratedEmail] =
     useState<GeneratedEmailProps | null>(null);
-  const [history, setHistory] = useState<HistoryItem[]>([]);
   const [showEmailPref, setShowEmailPref] = useState(false);
   const [user, setUser] = useLocalStorage<User>("user", {
     name: "Guest",
@@ -126,8 +123,15 @@ export default function DashboardPage() {
       setIsLoading(false);
       return;
     }
-    const posts = transformPosts(res.data);
-    setProfileData({ posts });
+    const data = res.data[0];
+    // Assume res.data is { name: string, title: string, posts: RawPost[] }
+    const posts = transformPosts(data.posts ?? []);
+    setProfileData({
+      name: data?.name ?? "",
+      linkedinUrl: urlToUse,
+      title: data?.title ?? "",
+      posts,
+    });
     setUser((usr) => {
       if (!usr) return { name: "Guest", try: 0 };
       return { ...usr, try: usr.try + 1 };
@@ -154,7 +158,11 @@ export default function DashboardPage() {
     setIsLoading(true);
     setCurrentStep(3);
 
-    const data = { ...user.emailPreference, linkedin: url };
+    const data = {
+      ...user.emailPreference,
+      linkedin: url,
+      linkedin_content: profileData,
+    };
 
     const response = await serverGenerateEmail(data);
     console.log(response);
@@ -168,29 +176,12 @@ export default function DashboardPage() {
     setGeneratedEmail(response.data);
     setIsLoading(false);
     setCurrentStep(4);
-
-    const newHistoryItem: HistoryItem = {
-      url,
-      email: response.data,
-      posts: profileData?.posts || [],
-      timestamp: new Date().toLocaleString(),
-    };
-    setHistory((prev) => [newHistoryItem, ...prev]);
   };
 
   const handleReset = () => {
     setCurrentStep(0);
-    setUrl("");
     setProfileData(null);
     setGeneratedEmail(null);
-  };
-
-  const handleSelectHistory = (item: HistoryItem) => {
-    setUrl(item.url);
-    setProfileData({ posts: item.posts });
-    // If item.email is a string, we can't extract subject. We'll set subject as empty string.
-    setGeneratedEmail({ subject: "", content: item.email });
-    setCurrentStep(4);
   };
 
   const handleEmailPrefSave = () => {
@@ -346,27 +337,22 @@ export default function DashboardPage() {
                 </TimelineStep>
               )}
             </Card>
-
-            {/* Mobile-only: Results & History below timeline */}
+            {/* Mobile-only: Results below timeline */}
             <div className="block lg:hidden">
               <HistoryAndEmail
                 profileData={profileData}
                 generatedEmail={generatedEmail}
-                history={history}
-                onSelectHistory={handleSelectHistory}
               />
             </div>
           </div>
         </div>
 
-        {/* Right Side - Results & History */}
+        {/* Right Side - Results */}
         <div className="hidden lg:flex lg:w-2/5 border-l border-border/30 bg-background/80 flex-col overflow-hidden">
           <div className="flex-1 overflow-y-auto p-8">
             <HistoryAndEmail
               profileData={profileData}
               generatedEmail={generatedEmail}
-              history={history}
-              onSelectHistory={handleSelectHistory}
             />
           </div>
         </div>

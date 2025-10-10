@@ -21,7 +21,7 @@ export const serverOnboardingData = withArcjetProtection(async (data) => {
 export const serverLinkedInScrapper = withArcjetProtection(async (data) => {
   try {
     const response = await axios.post(
-      "https://n8n.watchwithme.in/webhook/scrape-linkedin",
+      "https://n8n.watchwithme.in/webhook/771ebb8b-1263-4729-bbb7-62614802cefd",
       {
         linkedin: data,
       }
@@ -38,7 +38,7 @@ export const serverLinkedInScrapper = withArcjetProtection(async (data) => {
 export const serverGenerateEmail = withArcjetProtection(async (data) => {
   try {
     const response = await axios.post(
-      "https://n8n.watchwithme.in/webhook/craft-email",
+      "https://n8n.watchwithme.in/webhook/6aaa92ae-8424-44c5-b5d4-3741ecb4d799",
       data
     );
     return { success: true, data: response.data };

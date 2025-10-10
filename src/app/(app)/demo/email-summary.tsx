@@ -2,26 +2,44 @@
 import { FileText, Mail, Clock, Sparkles, Check } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import ShimmerButton from "@/components/ui/shimmer-button";
 import React, { useState } from "react";
-import { HistoryAndEmailProps } from "./types";
+import { ProfileData, GeneratedEmailProps } from "./types";
+
+interface EmailSummaryProps {
+  profileData: ProfileData | null;
+  generatedEmail: GeneratedEmailProps | null;
+}
 
 export function HistoryAndEmail({
   profileData,
   generatedEmail,
-  history,
-  onSelectHistory,
-}: HistoryAndEmailProps) {
+}: EmailSummaryProps) {
   // Add state for copy animation
   const [copied, setCopied] = useState(false);
 
   return (
     <div className="space-y-8">
-      {/* LinkedIn Posts */}
+      {/* LinkedIn Profile & Posts */}
       {profileData && (
         <Card className="bg-card/90 rounded-xl shadow-lg border border-border/30 p-6 space-y-4">
           <div className="flex items-center gap-2 mb-4">
             <FileText className="text-primary" size={20} />
             <h3 className="font-semibold text-lg">Recent LinkedIn Posts</h3>
+          </div>
+          <div className="mb-2">
+            <p className="text-base font-semibold text-foreground">
+              {profileData.name}
+            </p>
+            <p className="text-sm text-muted-foreground">{profileData.title}</p>
+            <a
+              href={profileData.linkedinUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-primary underline"
+            >
+              View LinkedIn Profile
+            </a>
           </div>
           <div className="max-h-64 overflow-y-auto pr-2">
             <ul className="space-y-3">
@@ -31,10 +49,10 @@ export function HistoryAndEmail({
                   className="p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors"
                 >
                   <p className="text-sm font-medium whitespace-pre-line">
-                    {post.text}
+                    {post.content}
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    By: {post.author} | Posted: {post.posted_at}
+                    Posted: {new Date(post.postedAt).toLocaleString()}
                   </p>
                 </li>
               ))}
@@ -44,7 +62,7 @@ export function HistoryAndEmail({
       )}
       {/* Generated Email */}
       {generatedEmail && (
-        <Card className="bg-card/90 rounded-xl shadow-lg border border-border/30 p-6 space-y-4">
+        <Card className="bg-card/90 rounded-xl  shadow-lg border border-border/30 p-6 space-y-4">
           <div className="flex items-center gap-2 mb-4">
             <Mail className="text-primary" size={20} />
             <h3 className="font-semibold text-lg">Generated Email</h3>
@@ -57,13 +75,14 @@ export function HistoryAndEmail({
               {generatedEmail.subject}
             </div>
           </div>
-          <span className="block text-xs font-semibold text-muted-foreground mb-1">
+          <span className="block text-xs font-semibold text-muted-foreground -mb-2">
             Email
           </span>
-          <pre className="whitespace-pre-wrap text-sm font-sans bg-muted/20 rounded-lg p-4 mb-4 border border-border/10">
+          <pre className="whitespace-pre-wrap text-sm font-sans bg-muted/20 rounded-lg p-4 mb-0 border border-border/10">
             {generatedEmail.content}
           </pre>
-          <Button
+          {/* Use ShimmerButton for Copy Email after email is created */}
+          <ShimmerButton
             onClick={async () => {
               await navigator.clipboard.writeText(
                 `Subject: ${generatedEmail.subject}\n\n${generatedEmail.content}`
@@ -71,54 +90,17 @@ export function HistoryAndEmail({
               setCopied(true);
               setTimeout(() => setCopied(false), 1500);
             }}
-            className={`font-medium w-full sm:w-auto relative transition-all duration-300 ${
+            text={copied ? "Copied!" : "Copy Email"}
+            icon={copied ? <Check /> : undefined}
+            className={`w-full font-medium relative transition-all duration-300 py-4 text-base ${
               copied ? "bg-green-500 scale-105" : ""
             }`}
             disabled={copied}
-          >
-            <span
-              className={`transition-opacity duration-300 ${
-                copied ? "opacity-0 absolute" : "opacity-100"
-              }`}
-            >
-              Copy Email
-            </span>
-            <span
-              className={`transition-opacity duration-300 flex items-center gap-2 ${
-                copied ? "opacity-100" : "opacity-0 absolute"
-              }`}
-            >
-              <Check />
-              Copied!
-            </span>
-          </Button>
-        </Card>
-      )}
-      {/* History */}
-      {history.length > 0 && (
-        <Card className="bg-card/90 rounded-xl shadow-lg border border-border/30 p-6 space-y-4">
-          <div className="flex items-center gap-2 mb-4">
-            <Clock className="text-primary" size={20} />
-            <h3 className="font-semibold text-lg">History</h3>
-          </div>
-          <ul className="space-y-3">
-            {history?.map((item, idx) => (
-              <li
-                key={idx}
-                onClick={() => onSelectHistory(item)}
-                className="p-3 bg-muted/30 rounded-lg hover:bg-primary/10 transition-colors cursor-pointer"
-              >
-                <p className="text-sm font-medium truncate">{item.url}</p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {item.timestamp}
-                </p>
-              </li>
-            ))}
-          </ul>
+          />
         </Card>
       )}
       {/* Empty State */}
-      {!profileData && !generatedEmail && history.length === 0 && (
+      {!profileData && !generatedEmail && (
         <div className="flex flex-col items-center justify-center h-full text-center p-8">
           <Sparkles className="w-16 h-16 text-primary/30 mb-4" />
           <h3 className="text-lg font-semibold mb-2">Start Creating</h3>
