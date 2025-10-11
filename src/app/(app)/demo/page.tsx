@@ -90,7 +90,7 @@ export default function DashboardPage() {
   const [profileData, setProfileData] = useState<ProfileData | null>(null);
   const [generatedEmail, setGeneratedEmail] =
     useState<GeneratedEmailProps | null>(null);
-  const [showEmailPref, setShowEmailPref] = useState(false);
+  const [showEmailPref, setShowEmailPref] = useState(true);
   const [user, setUser] = useLocalStorage<User>("user", {
     name: "Guest",
     try: 0,

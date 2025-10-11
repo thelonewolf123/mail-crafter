@@ -5,7 +5,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogFooter
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -15,7 +15,7 @@ import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 // import { serverEmailPreference } from "@/server/actions";
 // import { toast } from "sonner";
-import { EmailPreferenceData, emailPreferenceSchema } from "./types";
+import { EmailPreferenceData, emailPreferenceSchema } from "@/schema/schema";
 import { User } from "@/hooks/use-localstorage";
 
 export function EmailPreferenceDialog({
@@ -23,7 +23,7 @@ export function EmailPreferenceDialog({
   onClose,
   onSaved,
   user,
-  setUser
+  setUser,
 }: {
   open: boolean;
   onClose: () => void;
@@ -36,7 +36,7 @@ export function EmailPreferenceDialog({
     control,
     handleSubmit,
     reset,
-    formState: { errors }
+    formState: { errors },
   } = useForm<EmailPreferenceData>({
     resolver: zodResolver(emailPreferenceSchema),
     defaultValues: {
@@ -47,13 +47,13 @@ export function EmailPreferenceDialog({
       usp: "",
       cta: "",
       sellerName: "",
-      sellerTitle: ""
-    }
+      sellerTitle: "",
+    },
   });
 
   const { fields, append, remove } = useFieldArray({
     control,
-    name: "key_features"
+    name: "key_features",
   });
 
   // Load preferences from user object in localStorage on open
@@ -73,7 +73,7 @@ export function EmailPreferenceDialog({
         usp: parsed.usp || "",
         cta: parsed.cta || "",
         sellerName: parsed.sellerName || "",
-        sellerTitle: parsed.sellerTitle || ""
+        sellerTitle: parsed.sellerTitle || "",
       });
     } else if (open) {
       reset();
@@ -287,7 +287,7 @@ export function EmailPreferenceDialog({
                           </label>
                           <Input
                             {...register(`key_features.${idx}.feature_name`, {
-                              required: true
+                              required: true,
                             })}
                             placeholder="e.g., Real-time Analytics"
                             className="h-9"
@@ -304,7 +304,7 @@ export function EmailPreferenceDialog({
                           </label>
                           <Textarea
                             {...register(`key_features.${idx}.benefit`, {
-                              required: true
+                              required: true,
                             })}
                             placeholder="How does this feature help customers?"
                             rows={2}

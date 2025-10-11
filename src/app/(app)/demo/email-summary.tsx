@@ -1,7 +1,6 @@
 "use client";
-import { FileText, Mail, Clock, Sparkles, Check } from "lucide-react";
+import { FileText, Mail, Sparkles, Check } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import ShimmerButton from "@/components/ui/shimmer-button";
 import React, { useState } from "react";
 import { ProfileData, GeneratedEmailProps } from "./types";
