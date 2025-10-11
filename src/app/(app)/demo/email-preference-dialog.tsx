@@ -5,16 +5,17 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
+  DialogFooter
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { X, Plus } from "lucide-react";
 import { useForm, useFieldArray } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 // import { serverEmailPreference } from "@/server/actions";
 // import { toast } from "sonner";
-import { EmailPreferenceData } from "./types";
+import { EmailPreferenceData, emailPreferenceSchema } from "./types";
 import { User } from "@/hooks/use-localstorage";
 
 export function EmailPreferenceDialog({
@@ -22,7 +23,7 @@ export function EmailPreferenceDialog({
   onClose,
   onSaved,
   user,
-  setUser,
+  setUser
 }: {
   open: boolean;
   onClose: () => void;
@@ -30,23 +31,29 @@ export function EmailPreferenceDialog({
   user: User;
   setUser: (value: User | ((val: User) => User)) => void;
 }) {
-  const { register, control, handleSubmit, reset } =
-    useForm<EmailPreferenceData>({
-      defaultValues: {
-        email: "",
-        product_name: "",
-        product_description: "",
-        key_features: [{ feature_name: "", benefit: "" }],
-        usp: "",
-        cta: "",
-        sellerName: "",
-        sellerTitle: "",
-      },
-    });
+  const {
+    register,
+    control,
+    handleSubmit,
+    reset,
+    formState: { errors }
+  } = useForm<EmailPreferenceData>({
+    resolver: zodResolver(emailPreferenceSchema),
+    defaultValues: {
+      email: "",
+      product_name: "",
+      product_description: "",
+      key_features: [{ feature_name: "", benefit: "" }],
+      usp: "",
+      cta: "",
+      sellerName: "",
+      sellerTitle: ""
+    }
+  });
 
   const { fields, append, remove } = useFieldArray({
     control,
-    name: "key_features",
+    name: "key_features"
   });
 
   // Load preferences from user object in localStorage on open
@@ -66,7 +73,7 @@ export function EmailPreferenceDialog({
         usp: parsed.usp || "",
         cta: parsed.cta || "",
         sellerName: parsed.sellerName || "",
-        sellerTitle: parsed.sellerTitle || "",
+        sellerTitle: parsed.sellerTitle || ""
       });
     } else if (open) {
       reset();
@@ -120,6 +127,11 @@ export function EmailPreferenceDialog({
                       type="email"
                       className="h-10"
                     />
+                    {errors.email && (
+                      <p className="text-sm text-red-500 mt-1">
+                        {errors.email.message}
+                      </p>
+                    )}
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
@@ -132,6 +144,11 @@ export function EmailPreferenceDialog({
                         placeholder="John Doe"
                         className="h-10"
                       />
+                      {errors.sellerName && (
+                        <p className="text-sm text-red-500 mt-1">
+                          {errors.sellerName.message}
+                        </p>
+                      )}
                     </div>
                     <div>
                       <label className="text-sm font-medium mb-1.5 block">
@@ -142,6 +159,11 @@ export function EmailPreferenceDialog({
                         placeholder="Sales Manager"
                         className="h-10"
                       />
+                      {errors.sellerTitle && (
+                        <p className="text-sm text-red-500 mt-1">
+                          {errors.sellerTitle.message}
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -160,6 +182,11 @@ export function EmailPreferenceDialog({
                       placeholder="Your amazing product"
                       className="h-10"
                     />
+                    {errors.product_name && (
+                      <p className="text-sm text-red-500 mt-1">
+                        {errors.product_name.message}
+                      </p>
+                    )}
                   </div>
 
                   <div>
@@ -172,6 +199,11 @@ export function EmailPreferenceDialog({
                       rows={3}
                       className="resize-none"
                     />
+                    {errors.product_description && (
+                      <p className="text-sm text-red-500 mt-1">
+                        {errors.product_description.message}
+                      </p>
+                    )}
                   </div>
 
                   <div>
@@ -184,6 +216,11 @@ export function EmailPreferenceDialog({
                       rows={3}
                       className="resize-none"
                     />
+                    {errors.usp && (
+                      <p className="text-sm text-red-500 mt-1">
+                        {errors.usp.message}
+                      </p>
+                    )}
                   </div>
 
                   <div>
@@ -195,6 +232,11 @@ export function EmailPreferenceDialog({
                       placeholder="e.g., Schedule a demo, Start free trial"
                       className="h-10"
                     />
+                    {errors.cta && (
+                      <p className="text-sm text-red-500 mt-1">
+                        {errors.cta.message}
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -216,6 +258,12 @@ export function EmailPreferenceDialog({
                     Add Feature
                   </Button>
                 </div>
+
+                {errors.key_features && (
+                  <p className="text-sm text-red-500">
+                    {errors.key_features.message}
+                  </p>
+                )}
 
                 <div className="space-y-3">
                   {fields.map((field, idx) => (
@@ -239,11 +287,16 @@ export function EmailPreferenceDialog({
                           </label>
                           <Input
                             {...register(`key_features.${idx}.feature_name`, {
-                              required: true,
+                              required: true
                             })}
                             placeholder="e.g., Real-time Analytics"
                             className="h-9"
                           />
+                          {errors.key_features?.[idx]?.feature_name && (
+                            <p className="text-xs text-red-500 mt-1">
+                              {errors.key_features[idx]?.feature_name?.message}
+                            </p>
+                          )}
                         </div>
                         <div>
                           <label className="text-xs font-medium text-muted-foreground mb-1 block">
@@ -251,12 +304,17 @@ export function EmailPreferenceDialog({
                           </label>
                           <Textarea
                             {...register(`key_features.${idx}.benefit`, {
-                              required: true,
+                              required: true
                             })}
                             placeholder="How does this feature help customers?"
                             rows={2}
                             className="resize-none"
                           />
+                          {errors.key_features?.[idx]?.benefit && (
+                            <p className="text-xs text-red-500 mt-1">
+                              {errors.key_features[idx]?.benefit?.message}
+                            </p>
+                          )}
                         </div>
                       </div>
                     </div>
